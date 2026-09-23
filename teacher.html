@@ -9,7 +9,7 @@
         @media print {
             body { background: white !important; color: black !important; }
             .no-print { display: none !important; }
-            .print-box { border: none !important; box-shadow: none !important; }
+            .print-box { border: 1px solid #cbd5e1 !important; box-shadow: none !important; background: white !important; }
         }
     </style>
 </head>
@@ -17,14 +17,14 @@
     <!-- الشريط العلوي العماني -->
     <div class="h-2 w-full bg-gradient-to-r from-red-600 via-white to-green-600 no-print mb-6"></div>
 
-    <div class="max-w-5xl mx-auto space-y-6">
+    <div class="max-w-4xl mx-auto space-y-6">
         <!-- الترويسة الرسمية للتقرير -->
         <header class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 text-center print-box">
             <div class="flex justify-center gap-3 mb-2 no-print">
                 <span class="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">سلطنة عمان</span>
                 <span class="bg-green-700 text-white px-3 py-1 rounded-full text-sm font-bold">وزارة التعليم</span>
             </div>
-            <h1 class="text-2xl font-black mb-1">مدرسة جابر بن حيان للتعليم الأساسي</h1>
+            <h1 class="text-2xl font-black mb-1 text-slate-900 dark:text-white">مدرسة جابر بن حيان للتعليم الأساسي</h1>
             <h2 class="text-xl font-bold text-emerald-400 mb-2">التقرير النهائي لنتائج انتخابات تشكيل اللجان وأمين الصف</h2>
             <p class="text-slate-400 text-sm">تحت إشراف مربي الصف: أ. فيصل العريبي</p>
             <div class="mt-4 flex justify-center gap-6 text-sm text-slate-300">
@@ -35,12 +35,28 @@
         <!-- أزرار التحكم -->
         <div class="flex justify-between items-center no-print">
             <button onclick="location.reload()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-bold">تحديث البيانات الحية</button>
-            <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg">طباعة التقرير الرسمي</button>
+            <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg">طباعة التقرير الرسمي للفائزين</button>
         </div>
 
-        <!-- تحليل النتائج واللجان -->
-        <div id="results-container" class="space-y-6">
-            <!-- يتم تعبئة النتائج ديناميكياً هنا -->
+        <!-- ملخص الفائزين لكل لجنة (مخصص للطباعة المباشرة) -->
+        <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 print-box">
+            <h3 class="text-xl font-bold text-emerald-400 mb-6 pb-2 border-b border-slate-700 text-center">اعتماد النتائج النهائية للجان المدرسية وأمين الصف</h3>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-sm">
+                    <thead class="bg-slate-900 text-slate-300 print:bg-slate-100 print:text-black">
+                        <tr>
+                            <th class="p-3 rounded-r-lg">اللجنة / المنصب</th>
+                            <th class="p-3">الطالب الفائز</th>
+                            <th class="p-3">عدد الأصوات</th>
+                            <th class="p-3 rounded-l-lg">النسبة المئوية النهائية</th>
+                        </tr>
+                    </thead>
+                    <tbody id="winners-table-body" class="divide-y divide-slate-700 print:divide-slate-300">
+                        <!-- تعبئة ديناميكية لملخص الفائزين -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -57,8 +73,8 @@
 
         function renderTeacherDashboard(data) {
             document.getElementById('total-voters').innerText = data.voters ? data.voters.length : 0;
-            const container = document.getElementById('results-container');
-            container.innerHTML = '';
+            const tbody = document.getElementById('winners-table-body');
+            tbody.innerHTML = '';
 
             if (!data.committees) return;
 
@@ -71,7 +87,7 @@
 
                 // البحث عن المرشح الفائز بالمركز الأول
                 let winner = "لم يتم التصويت بعد";
-                let maxVotes = -1;
+                let maxVotes = 0;
                 Object.entries(committeeVotes).forEach(([student, votes]) => {
                     if (votes > maxVotes) {
                         maxVotes = votes;
@@ -79,62 +95,20 @@
                     }
                 });
 
-                let html = `
-                    <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 print-box">
-                        <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
-                            <h3 class="text-xl font-bold text-emerald-400">${committee}</h3>
-                            <span class="bg-slate-900 px-3 py-1 rounded-lg text-sm text-slate-300">إجمالي الأصوات: ${totalVotes}</span>
-                        </div>
-                        
-                        <div class="mb-4 p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl">
-                            <span class="text-sm text-emerald-400 font-semibold">المرشح الفائز حالياً: </span>
-                            <span class="text-white font-bold text-lg">${maxVotes > 0 ? winner : 'قيد الانتظار'}</span>
-                            ${maxVotes > 0 ? `<span class="text-xs text-slate-400 mr-2">(${maxVotes} صوت)</span>` : ''}
-                        </div>
+                const percentage = totalVotes > 0 ? Math.round((maxVotes / totalVotes) * 100) : 0;
 
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-right text-sm">
-                                <thead class="bg-slate-900 text-slate-400">
-                                    <tr>
-                                        <th class="p-3 rounded-r-lg">اسم المرشح</th>
-                                        <th class="p-3">عدد الأصوات</th>
-                                        <th class="p-3 rounded-l-lg">النسبة المئوية</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-700">
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-750 print:hover:bg-none">
+                        <td class="p-4 font-bold text-emerald-400 print:text-emerald-700">${committee}</td>
+                        <td class="p-4 font-black text-white print:text-black text-base">${maxVotes > 0 ? winner : 'قيد الانتظار'}</td>
+                        <td class="p-4 font-bold text-slate-200 print:text-black">${maxVotes} صوت</td>
+                        <td class="p-4">
+                            <span class="bg-emerald-900/50 text-emerald-300 px-3 py-1 rounded-full font-bold print:bg-slate-200 print:text-black">
+                                ${maxVotes > 0 ? percentage + '%' : '0%'}
+                            </span>
+                        </td>
+                    </tr>
                 `;
-
-                const allStudents = [...data.classes["9-1"], ...data.classes["9-2"]];
-                
-                // ترتيب الطلاب حسب عدد الأصوات تنازلياً
-                allStudents.sort((a, b) => {
-                    const votesA = committeeVotes[a] || 0;
-                    const votesB = committeeVotes[b] || 0;
-                    return votesB - votesA;
-                });
-
-                allStudents.forEach(student => {
-                    const votes = committeeVotes[student] || 0;
-                    const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
-
-                    html += `
-                        <tr class="hover:bg-slate-750">
-                            <td class="p-3 font-medium text-white">${student}</td>
-                            <td class="p-3 font-bold text-emerald-400">${votes}</td>
-                            <td class="p-3">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-full bg-slate-900 rounded-full h-2.5 max-w-[120px]">
-                                        <div class="bg-emerald-500 h-2.5 rounded-full" style="width: ${percentage}%"></div>
-                                    </div>
-                                    <span class="text-xs text-slate-400">${percentage}%</span>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                html += `</tbody></table></div></div>`;
-                container.innerHTML += html;
             });
         }
     </script>
