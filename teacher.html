@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة مربي الصف - الانتخابات المدرسية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            body { background: white !important; color: black !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .screen-only { display: none !important; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+    <!-- الهيدر الملكي الأخضر الموحد -->
+    <header class="bg-[#064e3b] text-white shadow-md border-b-4 border-amber-500 py-4 px-6 no-print">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="bg-emerald-800 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-sm flex items-center gap-2 border border-emerald-600 transition">
+                    <span>🎓</span> بوابة الطالب
+                </a>
+                <a href="teacher.html" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2 shadow transition">
+                    <span>👨‍🏫</span> لوحة مربي الصف (أ. فيصل)
+                </a>
+            </div>
+            <div class="text-center md:text-left">
+                <h1 class="text-lg md:text-xl font-bold tracking-wide">سلطنة عمان - وزارة التربية والتعليم</h1>
+                <p class="text-sm text-emerald-200">مدرسة جابر بن حيان للتعليم الأساسي (5-9)</p>
+                <p class="text-xs text-amber-300">لوحة تحكم المربي والنتائج الحية | بإشراف: أ. فيصل العريبي</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
+        <!-- لوحة التحكم العلوية على الشاشة -->
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4 no-print">
+            <div>
+                <h2 class="text-xl font-black text-emerald-900">متابعة سير الانتخابات المدرسية</h2>
+                <p class="text-slate-500 text-sm mt-1">إجمالي الطلاب المقترعين حتى الآن: <strong id="total-voters" class="text-emerald-700 text-lg">0</strong></p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="location.reload()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-2.5 rounded-xl font-bold text-sm transition">تحديث البيانات</button>
+                <button onclick="window.print()" class="bg-[#064e3b] hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg transition">طباعة التقرير الرسمي المختصر</button>
+            </div>
+        </div>
+
+        <!-- 1. عرض الشاشة: تفاصيل جميع الطلاب والأصوات والنسب لكل لجنة -->
+        <div id="screen-results-container" class="space-y-6 screen-only">
+            <!-- تعبئة ديناميكية -->
+        </div>
+
+        <!-- 2. عرض الطباعة: التقرير الرسمي المختصر والنظيف للفائزين فقط -->
+        <div class="bg-white text-black p-8 rounded-2xl shadow-xl print-only">
+            <div class="text-center mb-6 border-b pb-4">
+                <h2 class="text-lg font-bold">سلطنة عمان - وزارة التربية والتعليم</h2>
+                <h3 class="text-xl font-black mt-1">مدرسة جابر بن حيان للتعليم الأساسي</h3>
+                <p class="text-sm font-semibold text-emerald-800 mt-1">التقرير النهائي المعتمد لنتائج انتخاب اللجان وأمين الصف</p>
+                <p class="text-xs text-slate-600 mt-1">تحت إشراف مربي الصف: أ. فيصل العريبي</p>
+            </div>
+            <table class="w-full text-right text-sm border-collapse border border-slate-300">
+                <thead>
+                    <tr class="bg-slate-100 border-b">
+                        <th class="p-3 border">اللجنة / المنصب</th>
+                        <th class="p-3 border">الطالب الفائز</th>
+                        <th class="p-3 border">عدد الأصوات</th>
+                        <th class="p-3 border">النسبة المئوية النهائية</th>
+                    </tr>
+                </thead>
+                <tbody id="print-winners-tbody">
+                    <!-- تعبئة ديناميكية للفائزين للطباعة -->
+                </tbody>
+            </table>
+            <div class="mt-12 flex justify-between text-xs text-slate-600 pt-4 border-t">
+                <span>تاريخ التقرير: 2026/09/23</span>
+                <span>اعتماد مربي الصف: أ. فيصل العريبي</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', async () => {
+            const res = await fetchVotingData();
+            if (res && res.data) {
+                renderTeacherDashboard(res.data);
+            } else {
+                alert('فشل في تحميل بيانات النتائج.');
+            }
+        });
+
+        function renderTeacherDashboard(data) {
+            document.getElementById('total-voters').innerText = data.voters ? data.voters.length : 0;
+            
+            const screenContainer = document.getElementById('screen-results-container');
+            const printTbody = document.getElementById('print-winners-tbody');
+            
+            screenContainer.innerHTML = '';
+            printTbody.innerHTML = '';
+
+            if (!data.committees) return;
+
+            data.committees.forEach(committee => {
+                const committeeVotes = (data.votes && data.votes[committee]) ? data.votes[committee] : {};
+                
+                let totalVotes = 0;
+                Object.values(committeeVotes).forEach(v => totalVotes += v);
+
+                let winner = "لم يتم التصويت بعد";
+                let maxVotes = 0;
+                Object.entries(committeeVotes).forEach(([student, votes]) => {
+                    if (votes > maxVotes) {
+                        maxVotes = votes;
+                        winner = student;
+                    }
+                });
+
+                const winnerPercentage = totalVotes > 0 ? Math.round((maxVotes / totalVotes) * 100) : 0;
+
+                // --- عرض الشاشة التفصيلي ---
+                let screenHtml = `
+                    <div class="bg-white p-6 rounded-2xl shadow-xl border border-slate-200">
+                        <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                            <h3 class="text-xl font-bold text-emerald-900">${committee}</h3>
+                            <span class="bg-emerald-50 text-emerald-800 px-3 py-1 rounded-xl text-sm font-bold">إجمالي الأصوات: ${totalVotes}</span>
+                        </div>
+                        
+                        <div class="mb-4 p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl flex items-center justify-between">
+                            <div>
+                                <span class="text-xs text-emerald-700 font-bold block">الفائز الحالي:</span>
+                                <span class="text-slate-900 font-black text-lg">${maxVotes > 0 ? winner : 'قيد الانتظار'}</span>
+                            </div>
+                            ${maxVotes > 0 ? `<span class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold">${maxVotes} صوت (${winnerPercentage}%)</span>` : ''}
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right text-sm">
+                                <thead class="bg-slate-100 text-slate-600">
+                                    <tr>
+                                        <th class="p-3 rounded-r-xl">اسم المرشح</th>
+                                        <th class="p-3">عدد الأصوات</th>
+                                        <th class="p-3 rounded-l-xl">النسبة المئوية</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                `;
+
+                const allStudents = [...data.classes["9-1"], ...data.classes["9-2"]];
+                allStudents.sort((a, b) => (committeeVotes[b] || 0) - (committeeVotes[a] || 0));
+
+                allStudents.forEach(student => {
+                    const votes = committeeVotes[student] || 0;
+                    const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+
+                    screenHtml += `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-medium text-slate-800">${student}</td>
+                            <td class="p-3 font-bold text-emerald-700">${votes}</td>
+                            <td class="p-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5 max-w-[140px]">
+                                        <div class="bg-emerald-600 h-2.5 rounded-full" style="width: ${percentage}%"></div>
+                                    </div>
+                                    <span class="text-xs text-slate-500 font-semibold">${percentage}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                screenHtml += `</tbody></table></div></div>`;
+                screenContainer.innerHTML += screenHtml;
+
+                // --- جدول الطباعة المختصر ---
+                printTbody.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-3 border font-bold text-emerald-900">${committee}</td>
+                        <td class="p-3 border font-black text-black text-base">${maxVotes > 0 ? winner : 'قيد الانتظار'}</td>
+                        <td class="p-3 border font-bold">${maxVotes} صوت</td>
+                        <td class="p-3 border font-bold">${maxVotes > 0 ? winnerPercentage + '%' : '0%'}</td>
+                    </tr>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
