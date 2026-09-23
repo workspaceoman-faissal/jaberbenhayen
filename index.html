@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة الطالب - الانتخابات المدرسية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .floating-header-card {
+            background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+            box-shadow: 0 15px 25px -5px rgba(6, 78, 59, 0.25), 0 8px 10px -4px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-12 antialiased relative">
+    
+    <header class="w-full max-w-4xl mx-auto px-3 pt-4 mb-6">
+        <div class="floating-header-card rounded-2xl sm:rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden text-center">
+            <div class="absolute -left-10 -top-10 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-amber-400/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="relative z-10 space-y-1.5 sm:space-y-2">
+                <h1 class="text-xl sm:text-3xl font-black tracking-wider text-emerald-100">سلطنة عمان</h1>
+                <h2 class="text-lg sm:text-2xl font-bold tracking-wide text-emerald-200">وزارة التعليم</h2>
+                <p class="text-sm sm:text-lg text-white font-semibold tracking-wide">مدرسة جابر بن حيان للتعليم الأساسي (5-9)</p>
+                
+                <div class="pt-2">
+                    <div class="bg-emerald-950/70 backdrop-blur-md px-4 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl inline-block shadow-inner border border-emerald-700/50 space-y-0.5">
+                        <p class="text-xs sm:text-base text-amber-300 font-bold">انتخابات لجان الصف التاسع وأمين الصف</p>
+                        <p class="text-[11px] sm:text-sm text-amber-200 font-semibold">بإشراف مربي الصف: أ. فيصل العريبي</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-xl mx-auto px-3 sm:px-6">
+        <!-- مرحلة تسجيل الطالب -->
+        <div id="login-section" class="bg-white p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl border border-slate-200 text-center">
+            <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl shadow-inner">
+                🔒
+            </div>
+            <h2 class="text-xl sm:text-2xl font-black mb-1 text-slate-800">تسجيل دخول الطالب للتصويت</h2>
+            <p class="text-slate-500 text-xs sm:text-sm mb-6">الرجاء إدخال بياناتك للمشاركة في الانتخابات الصفية</p>
+            
+            <form id="voter-form" class="space-y-4 text-right">
+                <div>
+                    <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1">الاسم الثلاثي والقبيلة:</label>
+                    <input type="text" id="student-name" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-slate-800 text-sm focus:border-emerald-600 focus:bg-white focus:outline-none transition" placeholder="مثال: سالم بن سعيد المعشري">
+                </div>
+                <div>
+                    <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1">شعبة الصف التاسع:</label>
+                    <select id="student-class" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-slate-800 text-sm focus:border-emerald-600 focus:bg-white focus:outline-none transition">
+                        <option value="">-- اختر الشعبة --</option>
+                        <option value="9-1">التاسع (1)</option>
+                        <option value="9-2">التاسع (2)</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-[#064e3b] hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl transition duration-200 shadow-lg mt-2 text-sm sm:text-base">الانتقال لورقة الاقتراع</button>
+            </form>
+        </div>
+
+        <!-- مرحلة الاقتراع واللجان -->
+        <div id="voting-section" class="hidden space-y-4 sm:space-y-6">
+            <div class="bg-white p-4 rounded-xl sm:rounded-2xl shadow border border-slate-200 flex justify-between items-center text-sm">
+                <div>
+                    <span class="text-slate-500 text-[11px] block">الطالب الناخب:</span>
+                    <span id="display-name" class="font-bold text-emerald-800"></span>
+                </div>
+                <div>
+                    <span class="text-slate-500 text-[11px] block">الشعبة:</span>
+                    <span id="display-class" class="font-bold text-slate-800"></span>
+                </div>
+            </div>
+
+            <div id="reedit-notice" class="hidden bg-amber-50 border border-amber-300 text-amber-800 p-3 rounded-xl text-xs font-bold text-center">
+                ⚠️ تنبيه: لقد قمت بالتصويت مسبقاً، يمكنك تعديل اختياراتك أدناه وإرسالها لتحديث صوتك.
+            </div>
+
+            <form id="ballot-form" class="space-y-4 sm:space-y-6">
+                <div id="committees-container" class="space-y-4">
+                    <!-- تعبئة ديناميكية -->
+                </div>
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-xl sm:rounded-2xl transition duration-200 shadow-xl text-base sm:text-lg">اعتماد وتحديث الأصوات النهائية</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- البطاقة العائمة (Modal) لتأكيد وشكر التصويت -->
+    <div id="success-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 text-center transform transition-all scale-95 opacity-0 duration-300" id="modal-content">
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner animate-bounce">
+                🎉
+            </div>
+            
+            <h3 class="text-2xl font-black text-emerald-900 mb-2">تم اعتماد صوتك بنجاح!</h3>
+            <p class="text-slate-600 text-sm sm:text-base mb-6 leading-relaxed">
+                شكراً لك على مشاركتك الفعّالة في العملية الانتخابية الصفية.
+            </p>
+
+            <button onclick="location.reload()" class="w-full bg-[#064e3b] hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl shadow-lg transition duration-200 text-sm sm:text-base">
+                إغلاق والعودة للرئيسية
+            </button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        let globalData = null;
+        const currentVoter = { name: '', class: '' };
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const res = await fetchVotingData();
+            if (res && res.data) {
+                globalData = res.data;
+            } else {
+                alert('حدث خطأ في تحميل بيانات المنصة.');
+            }
+        });
+
+        document.getElementById('voter-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('student-name'].value.trim();
+            const cls = document.getElementById('student-class').value;
+            
+            if (!name || !cls) return alert('يرجى كتابة الاسم واختيار الشعبة');
+            if (!globalData) return alert('البيانات لم تحمّل بعد، يرجى الانتظار ثانية.');
+
+            currentVoter.name = name;
+            currentVoter.class = cls;
+
+            document.getElementById('display-name').innerText = name;
+            document.getElementById('display-class').innerText = cls === '9-1' ? 'التاسع (1)' : 'التاسع (2)';
+
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('voting-section').classList.remove('hidden');
+
+            // فحص هل صوت مسبقاً لإظهار التنبيه
+            if (globalData.voters && globalData.voters.includes(name)) {
+                document.getElementById('reedit-notice').classList.remove('hidden');
+            }
+
+            renderBallotForms();
+        });
+
+        function renderBallotForms() {
+            const container = document.getElementById('committees-container');
+            container.innerHTML = '';
+            if (!globalData.votes) globalData.votes = {};
+
+            globalData.committees.forEach((committee, cIndex) => {
+                if (!globalData.votes[committee]) globalData.votes[committee] = {};
+                const allStudents = [...globalData.classes["9-1"], ...globalData.classes["9-2"]];
+                
+                // البحث عما إذا كان هذا الطالب قد اختار مرشحاً سابقاً في هذه اللجنة لتحديد الخيار افتراضياً
+                let previousChoice = "";
+                if (globalData.userChoices && globalData.userChoices[currentVoter.name] && globalData.userChoices[currentVoter.name][committee]) {
+                    previousChoice = globalData.userChoices[currentVoter.name][committee];
+                }
+
+                let totalCommitteeVotes = 0;
+                allStudents.forEach(student => {
+                    totalCommitteeVotes += (globalData.votes[committee][student] || 0);
+                });
+
+                let html = `
+                    <div class="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border border-slate-200">
+                        <h3 class="text-lg sm:text-xl font-bold text-emerald-800 mb-2 border-b pb-2">${committee}</h3>
+                        <label class="block text-xs sm:text-sm font-semibold text-slate-600 mb-2">اختر المرشح المناسب:</label>
+                        <select name="committee_${cIndex}" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-slate-800 text-sm focus:border-emerald-600 focus:bg-white focus:outline-none mb-1">
+                            <option value="">-- اختر مرشحك لهذه اللجنة --</option>
+                `;
+
+                allStudents.forEach(student => {
+                    const votesCount = globalData.votes[committee][student] || 0;
+                    const percentage = totalCommitteeVotes > 0 ? Math.round((votesCount / totalCommitteeVotes) * 100) : 0;
+                    const isSelected = (student === previousChoice) ? 'selected' : '';
+                    html += `<option value="${student}" ${isSelected}>${student} (الأصوات: ${votesCount} - ${percentage}%)</option>`;
+                });
+
+                html += `</select></div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        document.getElementById('ballot-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!globalData.voters) globalData.voters = [];
+            if (!globalData.userChoices) globalData.userChoices = {};
+
+            // إذا كان الطالب مصوتاً مسبقاً، نقوم بخصم أصواته القديمة أولاً لكي لا تتكرر
+            if (globalData.voters.includes(currentVoter.name) && globalData.userChoices[currentVoter.name]) {
+                globalData.committees.forEach(committee => {
+                    const oldChosenStudent = globalData.userChoices[currentVoter.name][committee];
+                    if (oldChosenStudent && globalData.votes[committee] && globalData.votes[committee][oldChosenStudent] > 0) {
+                        globalData.votes[committee][oldChosenStudent] -= 1;
+                    }
+                });
+            }
+
+            // تسجيل الاختيارات الجديدة
+            if (!globalData.userChoices[currentVoter.name]) globalData.userChoices[currentVoter.name] = {};
+
+            globalData.committees.forEach((committee, cIndex) => {
+                const selectedSelect = document.querySelector(`select[name="committee_${cIndex}"]`);
+                if (selectedSelect && selectedSelect.value) {
+                    const chosenStudent = selectedSelect.value;
+                    globalData.userChoices[currentVoter.name][committee] = chosenStudent;
+                    if (!globalData.votes[committee]) globalData.votes[committee] = {};
+                    globalData.votes[committee][chosenStudent] = (globalData.votes[committee][chosenStudent] || 0) + 1;
+                }
+            });
+
+            if (!globalData.voters.includes(currentVoter.name)) {
+                globalData.voters.push(currentVoter.name);
+            }
+
+            const success = await saveVotingDataToGitHub(globalData);
+            
+            if (success) {
+                const modal = document.getElementById('success-modal');
+                const modalContent = document.getElementById('modal-content');
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            } else {
+                alert('حدث خطأ أثناء حفظ الصوت، يرجى المحاولة مرة أخرى.');
+            }
+        });
+    </script>
+</body>
+</html>
