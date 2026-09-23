@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة مربي الصف - أ. فيصل العريبي | النتائج الحية</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Cairo', sans-serif; } </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen py-8 px-4">
+    <div class="max-w-4xl mx-auto bg-slate-900 border border-emerald-800/40 shadow-2xl rounded-2xl p-6 md:p-8 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-600 via-emerald-600 to-white"></div>
+
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-6 mb-6 gap-4">
+            <div>
+                <span class="bg-emerald-700 text-white text-xs px-3 py-1 rounded-full font-bold">لوحة تحكم المشرف التربوي</span>
+                <h1 class="text-2xl font-black text-white mt-2">أ. فيصل العريبي - الصف التاسع</h1>
+                <p class="text-slate-400 text-xs mt-1">مدرسة جابر بن حيان للتعليم الأساسي - سلطنة عمان</p>
+            </div>
+            <button onclick="loadDashboard()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-md">تحديث النتائج المباشرة 🔄</button>
+        </div>
+
+        <div id="loading" class="text-center py-12 text-emerald-400 font-bold text-base">جاري جلب النتائج المحدثة من سحابة GitHub...</div>
+
+        <div id="dashboardContent" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                    <p class="text-slate-400 text-xs font-semibold">إجمالي الطلاب المشاركين بالتصويت</p>
+                    <p id="totalVotersCount" class="text-3xl font-black text-emerald-400 mt-1">0</p>
+                </div>
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                    <p class="text-slate-400 text-xs font-semibold">حالة الارتباط السحابي</p>
+                    <p class="text-2xl font-black text-emerald-400 mt-1">متصل ومباشر (Online) 🟢</p>
+                </div>
+            </div>
+
+            <div id="resultsContainer" class="space-y-6">
+                <!-- نتائج اللجان الحية -->
+            </div>
+
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <h3 class="text-base font-bold text-white mb-4">سجل الطلاب المقترعين (الاسم والشعبة ووقت التصويت):</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right text-sm">
+                        <thead class="bg-slate-900 text-emerald-400 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">اسم الطالب الثلاثي</th>
+                                <th class="p-3">الشعبة</th>
+                                <th class="p-3">وقت التصويت</th>
+                            </tr>
+                        </thead>
+                        <tbody id="votersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        async function loadDashboard() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('dashboardContent').classList.add('hidden');
+
+            const res = await fetchVotingData();
+            if (res) {
+                const data = res.data;
+                document.getElementById('totalVotersCount').innerText = data.voters.length;
+                
+                renderResults(data.candidates);
+                renderVotersTable(data.votesLog);
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboardContent').classList.remove('hidden');
+            }
+        }
+
+        function renderResults(candidates) {
+            const container = document.getElementById('resultsContainer');
+            const titles = {
+                social: "نتائج اللجنة الاجتماعية",
+                sports: "نتائج اللجنة الرياضية",
+                cultural: "نتائج اللجنة الثقافية",
+                secretary: "نتائج أمين الصف",
+                assistant: "نتائج أمين مساعد الصف"
+            };
+
+            let html = '';
+            for (const [key, list] of Object.entries(candidates)) {
+                const sorted = [...list].sort((a, b) => b.votes - a.votes);
+                html += `
+                    <div class="bg-slate-950 p-5 rounded-xl border border-slate-800">
+                        <h3 class="text-lg font-bold text-emerald-400 mb-4">${titles[key]}</h3>
+                        <div class="space-y-3">
+                `;
+                sorted.forEach((c, index) => {
+                    html += `
+                        <div class="bg-slate-900 p-3 rounded-lg flex justify-between items-center border border-slate-800/60">
+                            <span class="text-white font-medium text-sm">${index === 0 ? '🥇' : index === 1 ? '🥈' : '👤'} ${c.name}</span>
+                            <span class="bg-emerald-950 text-emerald-400 font-bold px-3 py-1 rounded-full text-xs border border-emerald-800/40">${c.votes} أصوات</span>
+                        </div>
+                    `;
+                });
+                html += `</div></div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function renderVotersTable(votesLog) {
+            const tbody = document.getElementById('votersTableBody');
+            if (votesLog.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 text-sm">لم يقم أي طالب بالتصويت حتى الآن.</td></tr>`;
+                return;
+            }
+            let html = '';
+            votesLog.slice().reverse().forEach(v => {
+                html += `
+                    <tr class="border-b border-slate-900 hover:bg-slate-900/50">
+                        <td class="p-3 text-white font-medium text-sm">${v.name}</td>
+                        <td class="p-3 text-slate-300 text-sm">${v.class}</td>
+                        <td class="p-3 text-slate-400 text-xs">${v.time}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>
