@@ -19,7 +19,7 @@
             </div>
             <h1 class="text-2xl md:text-3xl font-black mb-2">مدرسة جابر بن حيان للتعليم الأساسي</h1>
             <p class="text-emerald-400 font-semibold text-lg">انتخابات تشكيل اللجان المدرسية وأمين الصف (الصف التاسع)</p>
-            <p class="text-slate-400 text-sm mt-1">تحت إشراف مربی الصف: أ. فيصل العريبي</p>
+            <p class="text-slate-400 text-sm mt-1">تحت إشراف مربي الصف: أ. فيصل العريبي</p>
         </header>
 
         <!-- مرحلة تسجيل الطالب -->
@@ -57,7 +57,7 @@
 
             <form id="ballot-form" class="space-y-6">
                 <div id="committees-container">
-                    <!-- يتم تعبئة اللجان والمرشحين ديناميكياً هنا -->
+                    <!-- يتم تعبئة اللجان وقوائم المرشحين المنسدلة ديناميكياً هنا -->
                 </div>
                 <button type="submit" class="w-full bg-red-600 hover:bg-red-500 text-white font-black py-4 rounded-xl transition duration-200 shadow-xl text-lg">اعتماد وإرسال الأصوات</button>
             </form>
@@ -66,7 +66,6 @@
 
     <script src="app.js"></script>
     <script>
-        // كود تشغيل الواجهة التفاعلية للطالب
         let globalData = null;
         const currentVoter = { name: '', class: '' };
 
@@ -81,8 +80,8 @@
 
         document.getElementById('voter-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            const name = document.getElementById('student-name').value.trim();
-            const cls = document.getElementById('student-class').value;
+            const name = document.getElementById('student-name'].value.trim();
+            const cls = document.getElementById('student-class'].value;
             
             if (!name || !cls) return alert('يرجى كتابة الاسم واختيار الشعبة');
 
@@ -102,45 +101,39 @@
             const container = document.getElementById('committees-container');
             container.innerHTML = '';
 
-            // هيكل الأصوات الافتراضي إذا لم يكن موجوداً
             if (!globalData.votes) globalData.votes = {};
 
             globalData.committees.forEach((committee, cIndex) => {
                 if (!globalData.votes[committee]) globalData.votes[committee] = {};
                 
-                let html = `
-                    <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 mb-6">
-                        <h3 class="text-xl font-bold text-emerald-400 mb-4 pb-2 border-b border-slate-700">${committee}</h3>
-                        <div class="space-y-3">
-                `;
-
-                // دمج طلاب الصفين ليكونوا مرشحين متاحين في اللجان
+                // دمج طلاب الصفين لتوفير جميع الخيارات في القائمة المنسدلة
                 const allStudents = [...globalData.classes["9-1"], ...globalData.classes["9-2"]];
                 
-                // حساب مجموع الأصوات للجنة الحالية لحساب النسب المئوية الحية
                 let totalCommitteeVotes = 0;
                 allStudents.forEach(student => {
                     totalCommitteeVotes += (globalData.votes[committee][student] || 0);
                 });
 
-                allStudents.forEach((student, sIndex) => {
+                let html = `
+                    <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 mb-6">
+                        <h3 class="text-xl font-bold text-emerald-400 mb-3">${committee}</h3>
+                        <label class="block text-sm text-slate-300 mb-2">اختر المرشح المناسب:</label>
+                        <select name="committee_${cIndex}" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-emerald-500 focus:outline-none mb-4">
+                            <option value="">-- اختر مرشحك لهذه اللجنة --</option>
+                `;
+
+                allStudents.forEach(student => {
                     const votesCount = globalData.votes[committee][student] || 0;
                     const percentage = totalCommitteeVotes > 0 ? Math.round((votesCount / totalCommitteeVotes) * 100) : 0;
-
-                    html += `
-                        <label class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-700 hover:border-emerald-500 cursor-pointer transition">
-                            <div class="flex items-center gap-3">
-                                <input type="radio" name="committee_${cIndex}" value="${student}" required class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
-                                <span class="font-medium text-white">${student}</span>
-                            </div>
-                            <div class="text-left text-xs text-slate-400">
-                                <span class="text-emerald-400 font-bold">${votesCount}</span> صوت (${percentage}%)
-                            </div>
-                        </label>
-                    `;
+                    
+                    // عرض اسم المرشح بجانبه إحصائية الأصوات الحالية في القائمة المنسدلة
+                    html += `<option value="${student}">${student} (الأصوات الحالية: ${votesCount} - ${percentage}%)</option>`;
                 });
 
-                html += `</div></div>`;
+                html += `
+                        </select>
+                    </div>
+                `;
                 container.innerHTML += html;
             });
         }
@@ -154,11 +147,11 @@
                 return;
             }
 
-            // جمع الأصوات المختارة
+            // تسجيل الأصوات المختارة من القوائم المنسدلة
             globalData.committees.forEach((committee, cIndex) => {
-                const selectedRadio = document.querySelector(`input[name="committee_${cIndex}"]:checked`);
-                if (selectedRadio) {
-                    const chosenStudent = selectedRadio.value;
+                const selectedSelect = document.querySelector(`select[name="committee_${cIndex}"]`);
+                if (selectedSelect && selectedSelect.value) {
+                    const chosenStudent = selectedSelect.value;
                     if (!globalData.votes[committee]) globalData.votes[committee] = {};
                     globalData.votes[committee][chosenStudent] = (globalData.votes[committee][chosenStudent] || 0) + 1;
                 }
@@ -166,7 +159,7 @@
 
             globalData.voters.push(currentVoter.name);
 
-            // حفظ التحديث سحابياً
+            // حفظ التحديثات سحابياً
             const success = await saveVotingDataToGitHub(globalData);
             if (success) {
                 alert('تم تسجيل صوتك بنجاح وشكراً لمشاركتك الديمقراطية!');
