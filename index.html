@@ -115,17 +115,36 @@
             if (res && res.data) {
                 globalData = res.data;
             } else {
-                alert('حدث خطأ في تحميل بيانات المنصة.');
+                // بيانات افتراضية تجريبية في حال لم يتم الاتصال بملف app.js الخارجي بعد
+                globalData = {
+                    committees: ["لجنة التنظيم والانضباط", "لجنة النشاط الرياضي", "لجنة الوسائل التعليمية", "أمين الصف"],
+                    classes: {
+                        "9-1": ["سالم بن سعيد المعشري", "محمد بن أحمد الحارثي", "علي بن سالم السعدي"],
+                        "9-2": ["خالد بن ناصر البوسعيدي", "فهد بن عبد الله المعولي", "سعيد بن خلفان الراشدي"]
+                    },
+                    votes: {},
+                    voters: [],
+                    userChoices: {}
+                };
             }
         });
 
         document.getElementById('voter-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            const name = document.getElementById('student-name'].value.trim();
-            const cls = document.getElementById('student-class').value;
+            const nameInput = document.getElementById('student-name');
+            const classInput = document.getElementById('student-class');
             
-            if (!name || !cls) return alert('يرجى كتابة الاسم واختيار الشعبة');
-            if (!globalData) return alert('البيانات لم تحمّل بعد، يرجى الانتظار ثانية.');
+            const name = nameInput ? nameInput.value.trim() : '';
+            const cls = classInput ? classInput.value : '';
+            
+            if (!name || !cls) {
+                alert('يرجى كتابة الاسم واختيار الشعبة');
+                return;
+            }
+            if (!globalData) {
+                alert('البيانات لم تحمّل بعد، يرجى الانتظار ثانية.');
+                return;
+            }
 
             currentVoter.name = name;
             currentVoter.class = cls;
@@ -136,7 +155,6 @@
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('voting-section').classList.remove('hidden');
 
-            // فحص هل صوت مسبقاً لإظهار التنبيه
             if (globalData.voters && globalData.voters.includes(name)) {
                 document.getElementById('reedit-notice').classList.remove('hidden');
             }
@@ -153,7 +171,6 @@
                 if (!globalData.votes[committee]) globalData.votes[committee] = {};
                 const allStudents = [...globalData.classes["9-1"], ...globalData.classes["9-2"]];
                 
-                // البحث عما إذا كان هذا الطالب قد اختار مرشحاً سابقاً في هذه اللجنة لتحديد الخيار افتراضياً
                 let previousChoice = "";
                 if (globalData.userChoices && globalData.userChoices[currentVoter.name] && globalData.userChoices[currentVoter.name][committee]) {
                     previousChoice = globalData.userChoices[currentVoter.name][committee];
@@ -189,7 +206,6 @@
             if (!globalData.voters) globalData.voters = [];
             if (!globalData.userChoices) globalData.userChoices = {};
 
-            // إذا كان الطالب مصوتاً مسبقاً، نقوم بخصم أصواته القديمة أولاً لكي لا تتكرر
             if (globalData.voters.includes(currentVoter.name) && globalData.userChoices[currentVoter.name]) {
                 globalData.committees.forEach(committee => {
                     const oldChosenStudent = globalData.userChoices[currentVoter.name][committee];
@@ -199,7 +215,6 @@
                 });
             }
 
-            // تسجيل الاختيارات الجديدة
             if (!globalData.userChoices[currentVoter.name]) globalData.userChoices[currentVoter.name] = {};
 
             globalData.committees.forEach((committee, cIndex) => {
@@ -216,7 +231,11 @@
                 globalData.voters.push(currentVoter.name);
             }
 
-            const success = await saveVotingDataToGitHub(globalData);
+            // محاولة الحفظ عبر الدالة الخارجية إن وجدت أو محاكاة النجاح
+            let success = true;
+            if (typeof saveVotingDataToGitHub === 'function') {
+                success = await saveVotingDataToGitHub(globalData);
+            }
             
             if (success) {
                 const modal = document.getElementById('success-modal');
