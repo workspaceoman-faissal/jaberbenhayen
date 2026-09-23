@@ -16,21 +16,25 @@
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
-    <!-- الهيدر الملكي الأخضر الموحد -->
+    <!-- الهيدر الملكي الأخضر المطابق للصورة تماماً -->
     <header class="bg-[#064e3b] text-white shadow-md border-b-4 border-amber-500 py-4 px-6 no-print">
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <a href="index.html" class="bg-emerald-800 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-sm flex items-center gap-2 border border-emerald-600 transition">
+            <!-- النصوص على الجانب الأيمن وشعار الوزارة والمدرسة -->
+            <div class="flex items-center gap-4 text-right order-2 md:order-1">
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold tracking-wide">سلطنة عمان - وزارة التعليم</h1>
+                    <p class="text-sm text-emerald-200">مدرسة جابر بن حيان للتعليم الأساسي (5-9)</p>
+                    <p class="text-xs text-amber-300">لوحة تحكم المربي والنتائج الحية | بإشراف: أ. فيصل العريبي</p>
+                </div>
+                <div class="w-12 h-12 bg-amber-500 text-slate-900 rounded-2xl flex items-center justify-center text-2xl shadow-lg shrink-0">
+                    👨‍🏫
+                </div>
+            </div>
+            <!-- زر بوابة الطالب على الجانب الأيسر -->
+            <div class="order-1 md:order-2">
+                <a href="index.html" class="bg-emerald-800 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-sm flex items-center gap-2 border border-emerald-600 shadow transition">
                     <span>🎓</span> بوابة الطالب
                 </a>
-                <a href="teacher.html" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2 shadow transition">
-                    <span>👨‍🏫</span> لوحة مربي الصف (أ. فيصل)
-                </a>
-            </div>
-            <div class="text-center md:text-left">
-                <h1 class="text-lg md:text-xl font-bold tracking-wide">سلطنة عمان - وزارة التربية والتعليم</h1>
-                <p class="text-sm text-emerald-200">مدرسة جابر بن حيان للتعليم الأساسي (5-9)</p>
-                <p class="text-xs text-amber-300">لوحة تحكم المربي والنتائج الحية | بإشراف: أ. فيصل العريبي</p>
             </div>
         </div>
     </header>
@@ -56,7 +60,7 @@
         <!-- 2. عرض الطباعة: التقرير الرسمي المختصر والنظيف للفائزين فقط -->
         <div class="bg-white text-black p-8 rounded-2xl shadow-xl print-only">
             <div class="text-center mb-6 border-b pb-4">
-                <h2 class="text-lg font-bold">سلطنة عمان - وزارة التربية والتعليم</h2>
+                <h2 class="text-lg font-bold">سلطنة عمان - وزارة التعليم</h2>
                 <h3 class="text-xl font-black mt-1">مدرسة جابر بن حيان للتعليم الأساسي</h3>
                 <p class="text-sm font-semibold text-emerald-800 mt-1">التقرير النهائي المعتمد لنتائج انتخاب اللجان وأمين الصف</p>
                 <p class="text-xs text-slate-600 mt-1">تحت إشراف مربي الصف: أ. فيصل العريبي</p>
