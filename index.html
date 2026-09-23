@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة الطالب - الانتخابات المدرسية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+    <!-- الهيدر الملكي الأخضر الموحد -->
+    <header class="bg-[#064e3b] text-white shadow-md border-b-4 border-amber-500 py-4 px-6">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <!-- أزرار التنقل السريع بين البوابات -->
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2 shadow transition">
+                    <span>🎓</span> بوابة الطالب
+                </a>
+                <a href="teacher.html" class="bg-emerald-800 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-sm flex items-center gap-2 border border-emerald-600 transition">
+                    <span>👨‍🏫</span> لوحة مربي الصف (أ. فيصل)
+                </a>
+            </div>
+            <!-- الشعار والترويسة -->
+            <div class="text-center md:text-left">
+                <h1 class="text-lg md:text-xl font-bold tracking-wide">سلطنة عمان - وزارة التربية والتعليم</h1>
+                <p class="text-sm text-emerald-200">مدرسة جابر بن حيان للتعليم الأساسي (5-9)</p>
+                <p class="text-xs text-amber-300">انتخابات لجان الصف التاسع وأمين الصف | بإشراف مربي الصف: أ. فيصل العريبي</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-xl mx-auto p-4 md:p-8 mt-6">
+        <!-- مرحلة تسجيل الطالب -->
+        <div id="login-section" class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 text-center">
+            <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
+                🔒
+            </div>
+            <h2 class="text-2xl font-black mb-1 text-slate-800">تسجيل دخول الطالب للتصويت</h2>
+            <p class="text-slate-500 text-sm mb-6">الرجاء إدخال بياناتك للمشاركة في الانتخابات الصفية</p>
+            
+            <form id="voter-form" class="space-y-4 text-right">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">الاسم الثلاثي والقبيلة:</label>
+                    <input type="text" id="student-name" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-slate-800 focus:border-emerald-600 focus:bg-white focus:outline-none transition" placeholder="مثال: سالم بن سعيد المعشري">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">شعبة الصف التاسع:</label>
+                    <select id="student-class" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-slate-800 focus:border-emerald-600 focus:bg-white focus:outline-none transition">
+                        <option value="">-- اختر الشعبة --</option>
+                        <option value="9-1">التاسع (1)</option>
+                        <option value="9-2">التاسع (2)</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-[#064e3b] hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl transition duration-200 shadow-lg mt-4">الانتقال لورقة الاقتراع</button>
+            </form>
+        </div>
+
+        <!-- مرحلة الاقتراع واللجان -->
+        <div id="voting-section" class="hidden space-y-6">
+            <div class="bg-white p-4 rounded-2xl shadow border border-slate-200 flex justify-between items-center">
+                <div>
+                    <span class="text-slate-500 text-xs block">الطالب الناخب:</span>
+                    <span id="display-name" class="font-bold text-emerald-800 text-base"></span>
+                </div>
+                <div>
+                    <span class="text-slate-500 text-xs block">الشعبة:</span>
+                    <span id="display-class" class="font-bold text-slate-800 text-base"></span>
+                </div>
+            </div>
+
+            <form id="ballot-form" class="space-y-6">
+                <div id="committees-container">
+                    <!-- يتم تعبئة اللجان وقوائم المرشحين المنسدلة ديناميكياً -->
+                </div>
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-2xl transition duration-200 shadow-xl text-lg">اعتماد وإرسال الأصوات النهائية</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        let globalData = null;
+        const currentVoter = { name: '', class: '' };
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const res = await fetchVotingData();
+            if (res && res.data) {
+                globalData = res.data;
+            } else {
+                alert('حدث خطأ في تحميل بيانات المنصة.');
+            }
+        });
+
+        document.getElementById('voter-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('student-name').value.trim();
+            const cls = document.getElementById('student-class').value;
+            
+            if (!name || !cls) return alert('يرجى كتابة الاسم واختيار الشعبة');
+            if (!globalData) return alert('البيانات لم تحمّل بعد، يرجى الانتظار ثانية.');
+
+            currentVoter.name = name;
+            currentVoter.class = cls;
+
+            document.getElementById('display-name').innerText = name;
+            document.getElementById('display-class').innerText = cls === '9-1' ? 'التاسع (1)' : 'التاسع (2)';
+
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('voting-section').classList.remove('hidden');
+
+            renderBallotForms();
+        });
+
+        function renderBallotForms() {
+            const container = document.getElementById('committees-container');
+            container.innerHTML = '';
+            if (!globalData.votes) globalData.votes = {};
+
+            globalData.committees.forEach((committee, cIndex) => {
+                if (!globalData.votes[committee]) globalData.votes[committee] = {};
+                const allStudents = [...globalData.classes["9-1"], ...globalData.classes["9-2"]];
+                
+                let totalCommitteeVotes = 0;
+                allStudents.forEach(student => {
+                    totalCommitteeVotes += (globalData.votes[committee][student] || 0);
+                });
+
+                let html = `
+                    <div class="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 mb-6">
+                        <h3 class="text-xl font-bold text-emerald-800 mb-2 border-b pb-2">${committee}</h3>
+                        <label class="block text-sm font-semibold text-slate-600 mb-2">اختر المرشح المناسب:</label>
+                        <select name="committee_${cIndex}" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-slate-800 focus:border-emerald-600 focus:bg-white focus:outline-none mb-2">
+                            <option value="">-- اختر مرشحك لهذه اللجنة --</option>
+                `;
+
+                allStudents.forEach(student => {
+                    const votesCount = globalData.votes[committee][student] || 0;
+                    const percentage = totalCommitteeVotes > 0 ? Math.round((votesCount / totalCommitteeVotes) * 100) : 0;
+                    html += `<option value="${student}">${student} (الأصوات الحالية: ${votesCount} - ${percentage}%)</option>`;
+                });
+
+                html += `</select></div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        document.getElementById('ballot-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!globalData.voters) globalData.voters = [];
+            
+            if (globalData.voters.includes(currentVoter.name)) {
+                alert('عذراً، لقد قمت بالتصويت مسبقاً ولا يمكنك التصويت مرة أخرى.');
+                return;
+            }
+
+            globalData.committees.forEach((committee, cIndex) => {
+                const selectedSelect = document.querySelector(`select[name="committee_${cIndex}"]`);
+                if (selectedSelect && selectedSelect.value) {
+                    const chosenStudent = selectedSelect.value;
+                    if (!globalData.votes[committee]) globalData.votes[committee] = {};
+                    globalData.votes[committee][chosenStudent] = (globalData.votes[committee][chosenStudent] || 0) + 1;
+                }
+            });
+
+            globalData.voters.push(currentVoter.name);
+            const success = await saveVotingDataToGitHub(globalData);
+            if (success) {
+                alert('تم تسجيل صوتك بنجاح وشكراً لمشاركتك!');
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء حفظ الصوت، يرجى المحاولة مرة أخرى.');
+            }
+        });
+    </script>
+</body>
+</html>
