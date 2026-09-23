@@ -80,10 +80,15 @@
 
         document.getElementById('voter-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            const name = document.getElementById('student-name'].value.trim();
-            const cls = document.getElementById('student-class'].value;
+            const name = document.getElementById('student-name').value.trim();
+            const cls = document.getElementById('student-class').value;
             
             if (!name || !cls) return alert('يرجى كتابة الاسم واختيار الشعبة');
+
+            if (!globalData) {
+                alert('البيانات لم تحمّل بعد، يرجى الانتظار ثانية وإعادة المحاولة.');
+                return;
+            }
 
             currentVoter.name = name;
             currentVoter.class = cls;
@@ -106,7 +111,6 @@
             globalData.committees.forEach((committee, cIndex) => {
                 if (!globalData.votes[committee]) globalData.votes[committee] = {};
                 
-                // دمج طلاب الصفين لتوفير جميع الخيارات في القائمة المنسدلة
                 const allStudents = [...globalData.classes["9-1"], ...globalData.classes["9-2"]];
                 
                 let totalCommitteeVotes = 0;
@@ -126,7 +130,6 @@
                     const votesCount = globalData.votes[committee][student] || 0;
                     const percentage = totalCommitteeVotes > 0 ? Math.round((votesCount / totalCommitteeVotes) * 100) : 0;
                     
-                    // عرض اسم المرشح بجانبه إحصائية الأصوات الحالية في القائمة المنسدلة
                     html += `<option value="${student}">${student} (الأصوات الحالية: ${votesCount} - ${percentage}%)</option>`;
                 });
 
@@ -147,7 +150,6 @@
                 return;
             }
 
-            // تسجيل الأصوات المختارة من القوائم المنسدلة
             globalData.committees.forEach((committee, cIndex) => {
                 const selectedSelect = document.querySelector(`select[name="committee_${cIndex}"]`);
                 if (selectedSelect && selectedSelect.value) {
@@ -159,7 +161,6 @@
 
             globalData.voters.push(currentVoter.name);
 
-            // حفظ التحديثات سحابياً
             const success = await saveVotingDataToGitHub(globalData);
             if (success) {
                 alert('تم تسجيل صوتك بنجاح وشكراً لمشاركتك الديمقراطية!');
