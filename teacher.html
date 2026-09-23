@@ -12,7 +12,7 @@
             .no-print { display: none !important; }
             .print-only { display: block !important; }
             .screen-only { display: none !important; }
-            .print-box { border: 1px solid #cbd5e1 !important; box-shadow: none !important; background: white !important; }
+            .print-box { border: none !important; box-shadow: none !important; background: white !important; }
         }
         .print-only { display: none; }
     </style>
@@ -22,13 +22,13 @@
     <div class="h-2 w-full bg-gradient-to-r from-red-600 via-white to-green-600 no-print mb-6"></div>
 
     <div class="max-w-5xl mx-auto space-y-6">
-        <!-- الترويسة الرسمية -->
-        <header class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 text-center print-box">
-            <div class="flex justify-center gap-3 mb-2 no-print">
+        <!-- الترويسة الخاصة بالشاشة فقط -->
+        <header class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 text-center no-print">
+            <div class="flex justify-center gap-3 mb-2">
                 <span class="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">سلطنة عمان</span>
                 <span class="bg-green-700 text-white px-3 py-1 rounded-full text-sm font-bold">وزارة التعليم</span>
             </div>
-            <h1 class="text-2xl font-black mb-1 text-slate-900 dark:text-white">مدرسة جابر بن حيان للتعليم الأساسي</h1>
+            <h1 class="text-2xl font-black mb-1 text-white">مدرسة جابر بن حيان للتعليم الأساسي</h1>
             <h2 class="text-xl font-bold text-emerald-400 mb-2">لوحة تحكم ونتائج انتخابات تشكيل اللجان وأمين الصف</h2>
             <p class="text-slate-400 text-sm">تحت إشراف مربي الصف: أ. فيصل العريبي</p>
             <div class="mt-4 flex justify-center gap-6 text-sm text-slate-300">
@@ -47,7 +47,7 @@
             <!-- يتم تعبئتها ديناميكياً بالتفاصيل الكاملة -->
         </div>
 
-        <!-- 2. عرض الطباعة: جدول مختصر وأنيق بأسماء الفائزين لكل لجنة فقط -->
+        <!-- 2. عرض الطباعة: التقرير المختصر والنظيف للفائزين فقط -->
         <div class="bg-white text-black p-6 rounded-2xl shadow-xl print-box print-only">
             <div class="text-center mb-6 border-b pb-4">
                 <h2 class="text-xl font-bold">سلطنة عمان - وزارة التعليم</h2>
@@ -68,7 +68,7 @@
                     <!-- يتم تعبئتها ديناميكياً بملخص الفائزين للطباعة -->
                 </tbody>
             </table>
-            <div class="mt-8 flex justify-between text-xs text-gray-500 pt-4 border-t">
+            <div class="mt-12 flex justify-between text-xs text-gray-600 pt-4 border-t">
                 <span>تاريخ التقرير: 2026/09/23</span>
                 <span>اعتماد مربي الصف: أ. فيصل العريبي</span>
             </div>
@@ -100,11 +100,9 @@
             data.committees.forEach(committee => {
                 const committeeVotes = (data.votes && data.votes[committee]) ? data.votes[committee] : {};
                 
-                // حساب إجمالي الأصوات لهذه اللجنة
                 let totalVotes = 0;
                 Object.values(committeeVotes).forEach(v => totalVotes += v);
 
-                // البحث عن المرشح الفائز
                 let winner = "لم يتم التصويت بعد";
                 let maxVotes = 0;
                 Object.entries(committeeVotes).forEach(([student, votes]) => {
@@ -116,7 +114,7 @@
 
                 const winnerPercentage = totalVotes > 0 ? Math.round((maxVotes / totalVotes) * 100) : 0;
 
-                // --- 1. بناء واجهة الشاشة (التفاصيل الكاملة لكل الطلاب) ---
+                // --- واجهة الشاشة التفصيلية ---
                 let screenHtml = `
                     <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700">
                         <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
@@ -143,8 +141,6 @@
                 `;
 
                 const allStudents = [...data.classes["9-1"], ...data.classes["9-2"]];
-                
-                // ترتيب الطلاب تنازلياً حسب الأصوات للشاشة
                 allStudents.sort((a, b) => (committeeVotes[b] || 0) - (committeeVotes[a] || 0));
 
                 allStudents.forEach(student => {
@@ -170,7 +166,7 @@
                 screenHtml += `</tbody></table></div></div>`;
                 screenContainer.innerHTML += screenHtml;
 
-                // --- 2. بناء جدول الطباعة (الفائزون فقط بشكل مختصر ومرتب) ---
+                // --- جدول الطباعة المختصر ---
                 printTbody.innerHTML += `
                     <tr class="border-b">
                         <td class="p-3 border font-bold text-emerald-800">${committee}</td>
