@@ -15,12 +15,11 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen pb-12 antialiased">
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-12 antialiased relative">
     
     <!-- ترويسة بطاقة عصرية متجاوبة مع الهواتف -->
     <header class="w-full max-w-4xl mx-auto px-3 pt-4 mb-6">
         <div class="floating-header-card rounded-2xl sm:rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden text-center">
-            <!-- تأثيرات إضاءة جمالية خلفية -->
             <div class="absolute -left-10 -top-10 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none"></div>
             <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-amber-400/10 rounded-full blur-2xl pointer-events-none"></div>
 
@@ -84,6 +83,29 @@
                 </div>
                 <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-xl sm:rounded-2xl transition duration-200 shadow-xl text-base sm:text-lg">اعتماد وإرسال الأصوات النهائية</button>
             </form>
+        </div>
+    </div>
+
+    <!-- البطاقة العائمة (Modal) لتأكيد وشكر التصويت -->
+    <div id="success-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 text-center transform transition-all scale-95 opacity-0 duration-300" id="modal-content">
+            <!-- أيقونة نجاح -->
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner animate-bounce">
+                🎉
+            </div>
+            
+            <h3 class="text-2xl font-black text-emerald-900 mb-2">تم اعتماد صوتك بنجاح!</h3>
+            <p class="text-slate-600 text-sm sm:text-base mb-6 leading-relaxed">
+                شكراً لك على مشاركتك الفعّالة في العملية الانتخابية الصفية بكل نزاهة ومسؤولية.
+            </p>
+
+            <div class="bg-emerald-50/80 border border-emerald-200/60 p-4 rounded-2xl mb-6 text-xs sm:text-sm text-emerald-800 font-semibold">
+                تم حفظ خياراتك وسرّيتك في قاعدة البيانات المدرسية.
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-[#064e3b] hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl shadow-lg transition duration-200 text-sm sm:text-base">
+                إغلاق والعودة للرئيسية
+            </button>
         </div>
     </div>
 
@@ -174,9 +196,16 @@
 
             globalData.voters.push(currentVoter.name);
             const success = await saveVotingDataToGitHub(globalData);
+            
             if (success) {
-                alert('تم تسجيل صوتك بنجاح وشكراً لمشاركتك!');
-                location.reload();
+                // إظهار البطاقة العائمة الشفافة مع رسالة الشكر والتأكيد
+                const modal = document.getElementById('success-modal');
+                const modalContent = document.getElementById('modal-content');
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }, 10);
             } else {
                 alert('حدث خطأ أثناء حفظ الصوت، يرجى المحاولة مرة أخرى.');
             }
