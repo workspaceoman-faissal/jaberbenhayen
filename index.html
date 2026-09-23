@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>بوابة الطالب - الانتخابات المدرسية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Tajawal', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7',
+                            400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857',
+                            800: '#065f46', 900: '#064e3b', 950: '#022c22'
+                        }
+                    },
+                    boxShadow: {
+                        soft: '0 15px 30px -10px rgba(6, 78, 59, 0.18)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { font-family: 'Tajawal', sans-serif; }
+        html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+        body {
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        .floating-header-card {
+            background: linear-gradient(135deg, #064e3b 0%, #047857 55%, #059669 100%);
+            box-shadow: 0 20px 35px -10px rgba(6, 78, 59, 0.35), 0 8px 10px -4px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .pattern-overlay {
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0);
+            background-size: 22px 22px;
+        }
+        .card-in {
+            animation: cardIn .45s cubic-bezier(.2,.8,.2,1) both;
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .candidate-label { transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease, transform .1s ease; }
+        .candidate-label:active { transform: scale(0.99); }
+        .candidate-selected {
+            border-color: #059669 !important;
+            background-color: #ecfdf5 !important;
+            box-shadow: 0 0 0 3px rgba(5,150,105,0.15);
+        }
+        .check-circle { transition: opacity .15s ease, transform .15s ease; }
+        .step-dot { transition: all .25s ease; }
+        ::selection { background: #a7f3d0; }
+
+        @media (prefers-color-scheme: dark) {
+            body { background-color: #0b1512; }
+            .surface { background-color: #12211c !important; border-color: #1f3a30 !important; }
+            .surface-text { color: #e6f4ee !important; }
+            .surface-muted { color: #8fb3a4 !important; }
+            .input-dark { background-color: #0f1e19 !important; border-color: #24483a !important; color: #e6f4ee !important; }
+            .candidate-label { background-color: #0f1e19; border-color: #1f3a30; }
+            .candidate-selected { background-color: #123227 !important; border-color: #10b981 !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-16 antialiased relative">
+
+    <header class="w-full max-w-2xl mx-auto px-3 pt-4 mb-5">
+        <div class="floating-header-card rounded-2xl sm:rounded-3xl p-6 sm:p-9 text-white relative overflow-hidden text-center">
+            <div class="absolute inset-0 pattern-overlay opacity-40 pointer-events-none"></div>
+            <div class="absolute -left-10 -top-10 w-32 h-32 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -right-10 -bottom-10 w-36 h-36 bg-amber-400/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="relative z-10 space-y-1.5 sm:space-y-2">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-2 rounded-2xl bg-white/10 border border-white/20 backdrop-blur flex items-center justify-center shadow-inner">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 sm:w-7 sm:h-7 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </div>
+                <h1 class="text-lg sm:text-2xl font-black tracking-wide text-emerald-100">سلطنة عمان</h1>
+                <h2 class="text-base sm:text-xl font-bold tracking-wide text-emerald-200/90">وزارة التعليم</h2>
+                <p class="text-xs sm:text-base text-white/95 font-semibold tracking-wide">مدرسة جابر بن حيان للتعليم الأساسي (5-9)</p>
+
+                <div class="pt-2">
+                    <div class="bg-emerald-950/60 backdrop-blur-md px-4 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl inline-block shadow-inner border border-emerald-700/40 space-y-0.5">
+                        <p class="text-xs sm:text-base text-amber-300 font-bold">انتخابات لجان الصف التاسع وأمين الصف</p>
+                        <p class="text-[11px] sm:text-sm text-amber-200/90 font-semibold">بإشراف مربي الصف: أ. فيصل العريبي</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- مؤشر الخطوات -->
+        <div class="flex items-center justify-center gap-2 mt-4 select-none" id="stepper">
+            <div class="flex items-center gap-1.5">
+                <div id="step-1-dot" class="step-dot w-7 h-7 rounded-full bg-brand-700 text-white text-xs font-bold flex items-center justify-center shadow">١</div>
+                <span class="text-[11px] sm:text-xs font-bold text-slate-600">تسجيل الدخول</span>
+            </div>
+            <div class="w-8 sm:w-14 h-0.5 bg-slate-300 rounded-full"></div>
+            <div class="flex items-center gap-1.5">
+                <div id="step-2-dot" class="step-dot w-7 h-7 rounded-full bg-slate-300 text-slate-500 text-xs font-bold flex items-center justify-center">٢</div>
+                <span id="step-2-label" class="text-[11px] sm:text-xs font-bold text-slate-400">التصويت</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-xl mx-auto px-3 sm:px-6">
+        <!-- مرحلة تسجيل الطالب -->
+        <div id="login-section" class="surface card-in bg-white p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-soft border border-slate-200 text-center">
+            <div class="w-14 h-14 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z" />
+                </svg>
+            </div>
+            <h2 class="surface-text text-xl sm:text-2xl font-black mb-1 text-slate-800">تسجيل دخول الطالب للتصويت</h2>
+            <p class="surface-muted text-slate-500 text-xs sm:text-sm mb-6">الرجاء إدخال بياناتك للمشاركة في الانتخابات الصفية</p>
+
+            <form id="voter-form" class="space-y-4 text-right" novalidate>
+                <div>
+                    <label class="surface-text block text-xs sm:text-sm font-bold text-slate-700 mb-1.5">الاسم الثلاثي والقبيلة</label>
+                    <div class="relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="absolute top-1/2 -translate-y-1/2 right-3.5 w-4.5 h-4.5 text-slate-400" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z" />
+                        </svg>
+                        <input type="text" id="student-name" required
+                            class="input-dark w-full bg-slate-50 border border-slate-300 rounded-xl p-3 pr-10 text-slate-800 text-sm focus:border-brand-600 focus:ring-4 focus:ring-brand-100 focus:bg-white focus:outline-none transition"
+                            placeholder="مثال: سالم بن سعيد المعشري">
+                    </div>
+                </div>
+                <div>
+                    <label class="surface-text block text-xs sm:text-sm font-bold text-slate-700 mb-1.5">شعبة الصف التاسع</label>
+                    <div class="grid grid-cols-2 gap-2" id="class-toggle">
+                        <button type="button" data-value="9-1" class="class-option candidate-label border-2 border-slate-300 rounded-xl py-3 text-sm font-bold text-slate-700">التاسع (١)</button>
+                        <button type="button" data-value="9-2" class="class-option candidate-label border-2 border-slate-300 rounded-xl py-3 text-sm font-bold text-slate-700">التاسع (٢)</button>
+                    </div>
+                    <input type="hidden" id="student-class" required>
+                </div>
+                <p id="login-error" class="hidden text-xs font-bold text-red-600 bg-red-50 border border-red-200 rounded-lg py-2 px-3">يرجى كتابة الاسم واختيار الشعبة</p>
+                <button type="submit" class="w-full bg-brand-900 hover:bg-brand-800 text-white font-bold py-3.5 rounded-xl transition duration-200 shadow-lg mt-2 text-sm sm:text-base flex items-center justify-center gap-2">
+                    <span>الانتقال لورقة الاقتراع</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                </button>
+            </form>
+        </div>
+
+        <!-- مرحلة الاقتراع واللجان -->
+        <div id="voting-section" class="hidden space-y-4 sm:space-y-5">
+            <div class="surface card-in bg-white p-4 rounded-xl sm:rounded-2xl shadow border border-slate-200 flex justify-between items-center text-sm">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-full bg-brand-100 text-brand-700 font-black flex items-center justify-center text-sm shrink-0" id="voter-avatar"></div>
+                    <div>
+                        <span class="surface-muted text-slate-500 text-[11px] block">الطالب الناخب</span>
+                        <span id="display-name" class="surface-text font-bold text-brand-800"></span>
+                    </div>
+                </div>
+                <div class="text-left">
+                    <span class="surface-muted text-slate-500 text-[11px] block">الشعبة</span>
+                    <span id="display-class" class="surface-text font-bold text-slate-800"></span>
+                </div>
+            </div>
+
+            <div id="reedit-notice" class="hidden card-in bg-amber-50 border border-amber-300 text-amber-800 p-3 rounded-xl text-xs font-bold text-center flex items-center justify-center gap-2">
+                <span>⚠️</span>
+                <span>لقد قمت بالتصويت مسبقاً، يمكنك تعديل اختياراتك أدناه وإرسالها لتحديث صوتك.</span>
+            </div>
+
+            <form id="ballot-form" class="space-y-4 sm:space-y-5" novalidate>
+                <div id="committees-container" class="space-y-4">
+                    <!-- تعبئة ديناميكية -->
+                </div>
+                <p id="ballot-error" class="hidden text-xs font-bold text-red-600 bg-red-50 border border-red-200 rounded-lg py-2.5 px-3 text-center">يرجى اختيار مرشح لكل لجنة قبل الاعتماد</p>
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-xl sm:rounded-2xl transition duration-200 shadow-xl text-base sm:text-lg sticky bottom-3">
+                    اعتماد وتحديث الأصوات النهائية
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- البطاقة العائمة (Modal) لتأكيد وشكر التصويت -->
+    <div id="success-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 text-center transform transition-all scale-95 opacity-0 duration-300" id="modal-content">
+            <div class="w-20 h-20 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner animate-bounce">
+                🎉
+            </div>
+            <h3 class="text-2xl font-black text-brand-900 mb-2">تم اعتماد صوتك بنجاح!</h3>
+            <p class="text-slate-600 text-sm sm:text-base mb-6 leading-relaxed">
+                شكراً لك على مشاركتك الفعّالة في العملية الانتخابية الصفية.
+            </p>
+            <button onclick="location.reload()" class="w-full bg-brand-900 hover:bg-brand-800 text-white font-bold py-3.5 rounded-xl shadow-lg transition duration-200 text-sm sm:text-base">
+                إغلاق والعودة للرئيسية
+            </button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        let globalData = null;
+        const currentVoter = { name: '', class: '' };
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const res = await fetchVotingData();
+            if (res && res.data) {
+                globalData = res.data;
+            } else {
+                // بيانات افتراضية تجريبية في حال لم يتم الاتصال بملف app.js الخارجي بعد
+                globalData = {
+                    committees: ["لجنة التنظيم والانضباط", "لجنة النشاط الرياضي", "لجنة الوسائل التعليمية", "أمين الصف"],
+                    classes: {
+                        "9-1": ["سالم بن سعيد المعشري", "محمد بن أحمد الحارثي", "علي بن سالم السعدي"],
+                        "9-2": ["خالد بن ناصر البوسعيدي", "فهد بن عبد الله المعولي", "سعيد بن خلفان الراشدي"]
+                    },
+                    votes: {},
+                    voters: [],
+                    userChoices: {},
+                    voterClasses: {}
+                };
+            }
+        });
+
+        // ------- اختيار الشعبة (أزرار مقسّمة) -------
+        const classButtons = document.querySelectorAll('.class-option');
+        const classHidden = document.getElementById('student-class');
+        classButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                classButtons.forEach(b => b.classList.remove('candidate-selected'));
+                btn.classList.add('candidate-selected');
+                classHidden.value = btn.dataset.value;
+            });
+        });
+
+        // ------- نموذج تسجيل الدخول -------
+        document.getElementById('voter-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('student-name');
+            const errorBox = document.getElementById('login-error');
+
+            const name = nameInput ? nameInput.value.trim() : '';
+            const cls = classHidden ? classHidden.value : '';
+
+            if (!name || !cls) {
+                errorBox.classList.remove('hidden');
+                return;
+            }
+            errorBox.classList.add('hidden');
+
+            if (!globalData) {
+                errorBox.textContent = 'البيانات لم تحمّل بعد، يرجى الانتظار ثانية.';
+                errorBox.classList.remove('hidden');
+                return;
+            }
+
+            currentVoter.name = name;
+            currentVoter.class = cls;
+
+            document.getElementById('display-name').innerText = name;
+            document.getElementById('display-class').innerText = cls === '9-1' ? 'التاسع (1)' : 'التاسع (2)';
+            document.getElementById('voter-avatar').innerText = name.trim().charAt(0);
+
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('voting-section').classList.remove('hidden');
+
+            // تحديث مؤشر الخطوات
+            const s1 = document.getElementById('step-1-dot');
+            const s2 = document.getElementById('step-2-dot');
+            const s2label = document.getElementById('step-2-label');
+            s1.classList.add('bg-brand-700', 'text-white');
+            s1.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>';
+            s2.classList.remove('bg-slate-300', 'text-slate-500');
+            s2.classList.add('bg-brand-700', 'text-white');
+            s2label.classList.remove('text-slate-400');
+            s2label.classList.add('text-slate-600');
+
+            if (globalData.voters && globalData.voters.includes(name)) {
+                document.getElementById('reedit-notice').classList.remove('hidden');
+            }
+
+            renderBallotForms();
+        });
+
+        // ------- بناء بطاقات اللجان والمرشحين -------
+        function renderBallotForms() {
+            const container = document.getElementById('committees-container');
+            container.innerHTML = '';
+            if (!globalData.votes) globalData.votes = {};
+
+            globalData.committees.forEach((committee, cIndex) => {
+                if (!globalData.votes[committee]) globalData.votes[committee] = {};
+                const allStudents = [...globalData.classes["9-1"], ...globalData.classes["9-2"]];
+
+                let previousChoice = "";
+                if (globalData.userChoices && globalData.userChoices[currentVoter.name] && globalData.userChoices[currentVoter.name][committee]) {
+                    previousChoice = globalData.userChoices[currentVoter.name][committee];
+                }
+
+                let totalCommitteeVotes = 0;
+                allStudents.forEach(student => {
+                    totalCommitteeVotes += (globalData.votes[committee][student] || 0);
+                });
+
+                const groupName = `committee_${cIndex}`;
+                let optionsHtml = '';
+                allStudents.forEach((student, sIndex) => {
+                    const votesCount = globalData.votes[committee][student] || 0;
+                    const percentage = totalCommitteeVotes > 0 ? Math.round((votesCount / totalCommitteeVotes) * 100) : 0;
+                    const isSelected = (student === previousChoice);
+                    const initial = student.trim().charAt(0);
+                    const inputId = `${groupName}_opt${sIndex}`;
+
+                    optionsHtml += `
+                        <label for="${inputId}" class="candidate-label ${isSelected ? 'candidate-selected' : ''} flex items-center gap-3 p-3 rounded-xl border-2 border-slate-200 cursor-pointer">
+                            <input type="radio" id="${inputId}" name="${groupName}" value="${student}" ${isSelected ? 'checked' : ''} class="sr-only">
+                            <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-sm shrink-0">${initial}</div>
+                            <div class="flex-1 min-w-0">
+                                <p class="surface-text font-bold text-slate-800 text-sm truncate">${student}</p>
+                                <div class="mt-1.5 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-brand-500 rounded-full transition-all duration-500" style="width:${percentage}%"></div>
+                                </div>
+                            </div>
+                            <span class="surface-muted text-[11px] font-bold text-slate-500 shrink-0 w-9 text-left">${percentage}%</span>
+                            <svg class="check-circle w-5 h-5 text-brand-600 shrink-0 ${isSelected ? 'opacity-100' : 'opacity-0'}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </label>`;
+                });
+
+                const html = `
+                    <div class="surface card-in bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl shadow-lg border border-slate-200">
+                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+                            <h3 class="surface-text text-base sm:text-lg font-bold text-brand-800">${committee}</h3>
+                            <span class="surface-muted text-[11px] font-bold text-slate-400">${totalCommitteeVotes} صوت</span>
+                        </div>
+                        <div class="space-y-2" data-group="${groupName}">
+                            ${optionsHtml}
+                        </div>
+                    </div>`;
+                container.innerHTML += html;
+            });
+
+            // مزامنة تمييز البطاقة المختارة عند تغيير الاختيار
+            container.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    const group = container.querySelector(`[data-group="${radio.name}"]`);
+                    group.querySelectorAll('label').forEach(l => {
+                        l.classList.remove('candidate-selected');
+                        l.querySelector('.check-circle').classList.replace('opacity-100', 'opacity-0');
+                    });
+                    const chosenLabel = container.querySelector(`label[for="${radio.id}"]`);
+                    chosenLabel.classList.add('candidate-selected');
+                    chosenLabel.querySelector('.check-circle').classList.replace('opacity-0', 'opacity-100');
+                });
+            });
+        }
+
+        // ------- إرسال ورقة الاقتراع -------
+        document.getElementById('ballot-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorBox = document.getElementById('ballot-error');
+
+            // التحقق من اختيار مرشح لكل لجنة
+            const missing = globalData.committees.some((committee, cIndex) => {
+                return !document.querySelector(`input[name="committee_${cIndex}"]:checked`);
+            });
+            if (missing) {
+                errorBox.classList.remove('hidden');
+                errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            errorBox.classList.add('hidden');
+
+            if (!globalData.voters) globalData.voters = [];
+            if (!globalData.userChoices) globalData.userChoices = {};
+            if (!globalData.voterClasses) globalData.voterClasses = {};
+
+            // إذا كان الطالب قد صوت مسبقاً، نقوم بإلغاء أصواته القديمة من العدادات قبل تحديثها
+            if (globalData.voters.includes(currentVoter.name) && globalData.userChoices[currentVoter.name]) {
+                globalData.committees.forEach(committee => {
+                    const oldChosenStudent = globalData.userChoices[currentVoter.name][committee];
+                    if (oldChosenStudent && globalData.votes[committee] && globalData.votes[committee][oldChosenStudent] > 0) {
+                        globalData.votes[committee][oldChosenStudent] -= 1;
+                    }
+                });
+            }
+
+            if (!globalData.userChoices[currentVoter.name]) globalData.userChoices[currentVoter.name] = {};
+
+            // حفظ الاختيارات الجديدة وتحديث العدادات
+            globalData.committees.forEach((committee, cIndex) => {
+                const checked = document.querySelector(`input[name="committee_${cIndex}"]:checked`);
+                if (checked && checked.value) {
+                    const chosenStudent = checked.value;
+                    globalData.userChoices[currentVoter.name][committee] = chosenStudent;
+                    if (!globalData.votes[committee]) globalData.votes[committee] = {};
+                    globalData.votes[committee][chosenStudent] = (globalData.votes[committee][chosenStudent] || 0) + 1;
+                }
+            });
+
+            // تسجيل الناخب وشعبته
+            if (!globalData.voters.includes(currentVoter.name)) {
+                globalData.voters.push(currentVoter.name);
+            }
+            globalData.voterClasses[currentVoter.name] = currentVoter.class;
+
+            // محاولة الحفظ عبر الدالة الخارجية في app.js
+            let success = true;
+            if (typeof saveVotingDataToGitHub === 'function') {
+                success = await saveVotingDataToGitHub(globalData);
+            }
+
+            if (success) {
+                const modal = document.getElementById('success-modal');
+                const modalContent = document.getElementById('modal-content');
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            } else {
+                errorBox.textContent = 'حدث خطأ أثناء حفظ الصوت، يرجى المحاولة مرة أخرى.';
+                errorBox.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
