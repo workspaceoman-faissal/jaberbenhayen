@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التصويت الإلكتروني لِلِجان الصف التاسع | وزارة التربية والتعليم</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Cairo', sans-serif; } </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen py-8 px-4">
+    <div class="max-w-2xl mx-auto bg-slate-900 border border-emerald-800/40 shadow-2xl rounded-2xl p-6 md:p-8 relative overflow-hidden">
+        <!-- شريط الطابع العماني العلوي -->
+        <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-600 via-emerald-600 to-white"></div>
+
+        <!-- الهيدر الرسمي -->
+        <div class="text-center border-b border-slate-800 pb-6 mb-6">
+            <div class="flex items-center justify-center gap-2 mb-2">
+                <span class="bg-red-700 text-white text-xs px-3 py-1 rounded-full font-bold">سلطنة عمان</span>
+                <span class="bg-emerald-700 text-white text-xs px-3 py-1 rounded-full font-bold">وزارة التربية والتعليم</span>
+            </div>
+            <h1 class="text-2xl font-black text-white mt-2">مدرسة جابر بن حيان للتعليم الأساسي</h1>
+            <p class="text-emerald-400 font-bold mt-1 text-sm">انتخابات تشكيل اللجان المدرسية واختيار أمين الصف (الصف التاسع)</p>
+            <p class="text-slate-400 text-xs mt-1">تحت إشراف مربي الصف: <span class="text-white font-semibold">أ. فيصل العريبي</span></p>
+        </div>
+
+        <div id="loading" class="text-center py-12 text-emerald-400 font-bold">جاري تحميل المنصة والاتصال بقاعدة البيانات السحابية...</div>
+
+        <!-- نموذج التصويت -->
+        <form id="votingForm" class="space-y-6 hidden">
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <label class="block text-sm font-bold text-slate-300 mb-2">اسم الطالب الثلاثي والقبيلة:</label>
+                <input type="text" id="studentName" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-emerald-500 outline-none" placeholder="مثال: سالم بن محمد العلوي">
+                
+                <label class="block text-sm font-bold text-slate-300 mt-4 mb-2">الشعبة الدراسية:</label>
+                <select id="studentClass" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-emerald-500 outline-none">
+                    <option value="9/1">الصف التاسع - الشعبة (1)</option>
+                    <option value="9/2">الصف التاسع - الشعبة (2)</option>
+                    <option value="9/3">الصف التاسع - الشعبة (3)</option>
+                </select>
+            </div>
+
+            <div id="committeesContainer" class="space-y-6">
+                <!-- يتم تعبئة لجان التصويت والترشيح هنا تلقائياً -->
+            </div>
+
+            <button type="submit" id="submitBtn" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 rounded-xl shadow-lg transition-all text-base tracking-wide">
+                اعتماد وإرسال الصوت (حفظ سحابي مباشر) 🇴🇲🗳️
+            </button>
+        </form>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        let globalData = null;
+        let fileSha = null;
+
+        async function initStudentPortal() {
+            const res = await fetchVotingData();
+            if (res) {
+                globalData = res.data;
+                fileSha = res.sha;
+                renderBallot(globalData.candidates);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('votingForm').classList.remove('hidden');
+            }
+        }
+
+        function renderBallot(candidates) {
+            const container = document.getElementById('committeesContainer');
+            const titles = {
+                social: "📌 اللجنة الاجتماعية",
+                sports: "📌 اللجنة الرياضية",
+                cultural: "📌 اللجنة الثقافية",
+                secretary: "📌 أمين الصف",
+                assistant: "📌 أمين مساعد الصف"
+            };
+
+            let html = '';
+            for (const [key, list] of Object.entries(candidates)) {
+                html += `
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                        <h3 class="text-base font-bold text-emerald-400 mb-3">${titles[key]}</h3>
+                        <div class="space-y-2 mb-3">
+                `;
+                list.forEach(c => {
+                    html += `
+                        <label class="flex items-center gap-3 bg-slate-900 p-3 rounded-lg cursor-pointer hover:bg-slate-800 transition-colors border border-slate-800/60">
+                            <input type="radio" name="${key}" value="${c.name}" required class="w-4 h-4 text-emerald-600">
+                            <span class="text-white text-sm">${c.name}</span>
+                        </label>
+                    `;
+                });
+                html += `
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" id="nominate_${key}" placeholder="أو اقترح اسم طالب آخر..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none focus:border-emerald-500">
+                            <button type="button" onclick="addNewCandidate('${key}')" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 px-3 rounded-lg text-xs font-bold transition-colors">ترشيح جديد</button>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        async function addNewCandidate(committeeKey) {
+            const input = document.getElementById(`nominate_${committeeKey}`);
+            const name = input.value.trim();
+            if (!name) return alert('الرجاء كتابة اسم الطالب المقترح أولاً');
+
+            const latest = await fetchVotingData();
+            if (!latest) return;
+            globalData = latest.data;
+            fileSha = latest.sha;
+
+            const newId = globalData.candidates[committeeKey].length + 1;
+            globalData.candidates[committeeKey].push({ id: newId, name: name, votes: 1 });
+
+            const success = await saveVotingDataToGitHub(globalData, fileSha);
+            if (success) {
+                alert(`تم اعتماد وترشيح "${name}" بنجاح وتحديث النظام سحابياً!`);
+                location.reload();
+            } else {
+                alert('فشل حفظ الترشيح، تأكد من إعدادات الـ Token في ملف app.js');
+            }
+        }
+
+        document.getElementById('votingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const studentName = document.getElementById('studentName').value.trim();
+            const studentClass = document.getElementById('studentClass').value;
+
+            const latest = await fetchVotingData();
+            if (!latest) return;
+            globalData = latest.data;
+            fileSha = latest.sha;
+
+            if (globalData.voters.includes(studentName)) {
+                alert('عذراً، هذا الطالب قام بالتصويت مسبقاً في السجل!');
+                return;
+            }
+
+            const selections = {};
+            for (const key of Object.keys(globalData.candidates)) {
+                const checked = document.querySelector(`input[name="${key}"]:checked`);
+                if (!checked) {
+                    alert('الرجاء اختيار مرشح في كافة اللجان والمنصب');
+                    return;
+                }
+                selections[key] = checked.value;
+                const candidate = globalData.candidates[key].find(c => c.name === checked.value);
+                if (candidate) candidate.votes += 1;
+            }
+
+            globalData.voters.push(studentName);
+            globalData.votesLog.push({ name: studentName, class: studentClass, time: new Date().toLocaleString(), selections });
+
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').innerText = 'جاري التحديث والحفظ المباشر على GitHub... ⏳';
+
+            const saved = await saveVotingDataToGitHub(globalData, fileSha);
+            if (saved) {
+                alert('🎉 تم إتمام التصويت وحفظه بنجاح تام في ملفات المشروع السحابية!');
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء حفظ الأصوات سحابياً.');
+                document.getElementById('submitBtn').disabled = false;
+                document.getElementById('submitBtn').innerText = 'اعتماد وإرسال الصوت (حفظ سحابي مباشر) 🇴🇲🗳️';
+            }
+        });
+
+        initStudentPortal();
+    </script>
+</body>
+</html>
