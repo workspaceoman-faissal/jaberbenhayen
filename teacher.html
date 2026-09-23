@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة مربي الفصل - الانتخابات المدرسية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .floating-header-card {
+            background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+            box-shadow: 0 15px 25px -5px rgba(6, 78, 59, 0.25), 0 8px 10px -4px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        @media print {
+            body { background: white !important; color: black !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .screen-only { display: none !important; }
+            .floating-header-card { box-shadow: none !important; background: #064e3b !important; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-12 antialiased">
+    
+    <header class="w-full max-w-5xl mx-auto px-3 pt-4 mb-4 no-print">
+        <div class="floating-header-card rounded-2xl sm:rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden text-center">
+            <div class="absolute -left-10 -top-10 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-amber-400/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="relative z-10 space-y-1.5 sm:space-y-2">
+                <h1 class="text-xl sm:text-3xl font-black tracking-wider text-emerald-100">سلطنة عمان</h1>
+                <h2 class="text-lg sm:text-2xl font-bold tracking-wide text-emerald-200">وزارة التعليم</h2>
+                <p class="text-sm sm:text-lg text-white font-semibold tracking-wide">مدرسة جابر بن حيان للتعليم الأساسي (5-9)</p>
+                
+                <div class="pt-2">
+                    <div class="bg-emerald-950/70 backdrop-blur-md px-4 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl inline-block shadow-inner border border-emerald-700/50 space-y-0.5">
+                        <p class="text-xs sm:text-base text-amber-300 font-bold">لوحة تحكم المربي وإدارة تصويت الطلاب</p>
+                        <p class="text-[11px] sm:text-sm text-amber-200 font-semibold">بإشراف مربي الصف: أ. فيصل العريبي</p>
+                    </div>
+                </div>
+
+                <div class="pt-3">
+                    <a href="index.html" class="bg-emerald-900/90 hover:bg-emerald-950 text-white font-bold px-5 py-2.5 rounded-xl text-xs sm:text-sm inline-flex items-center gap-2 border border-emerald-600/60 shadow-lg transition duration-300">
+                        <span>🎓</span> الانتقال إلى بوابة الطالب
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-5xl mx-auto px-3 sm:px-6 space-y-4 sm:space-y-6">
+        <!-- لوحة التحكم العلوية وأزرار الإدارة -->
+        <div class="bg-white p-5 rounded-2xl shadow-lg border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3 no-print">
+            <div class="text-center sm:text-right">
+                <h2 class="text-lg sm:text-xl font-black text-emerald-900">متابعة وإدارة المقترعين</h2>
+                <p class="text-slate-500 text-xs sm:text-sm mt-0.5">إجمالي الطلاب المقترعين: <strong id="total-voters" class="text-emerald-700 text-base sm:text-lg">0</strong></p>
+            </div>
+            
+            <div class="flex flex-wrap gap-2 w-full sm:w-auto justify-center">
+                <button onclick="location.reload()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition">تحديث</button>
+                <button onclick="window.print()" class="bg-[#064e3b] hover:bg-emerald-800 text-white px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow transition">طباعة التقرير</button>
+                <!-- زر تصفير وحذف جميع الأصوات -->
+                <button onclick="resetAllVotesData()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow transition flex items-center gap-1">
+                    <span>🗑️</span> تصفير كل الأصوات
+                </button>
+            </div>
+        </div>
+
+        <!-- قائمة أسماء الطلاب المقترعين وإمكانية حذف تصويت طالب محدد -->
+        <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-lg border border-slate-200 no-print">
+            <h3 class="text-base sm:text-lg font-bold text-emerald-900 mb-3 border-b pb-2">سجل الطلاب الذين قاموا بالتصويت (مع إمكانية الحذف الفردي أو الكلي)</h3>
+            <div id="voters-management-list" class="flex flex-wrap gap-2">
+                <!-- تعبئة ديناميكية -->
+            </div>
+        </div>
+
+        <!-- عرض النتائج الحية على الشاشة -->
+        <div id="screen-results-container" class="space-y-4 sm:space-y-6 screen-only">
+            <!-- تعبئة ديناميكية -->
+        </div>
+
+        <!-- عرض الطباعة -->
+        <div class="bg-white text-black p-6 rounded-2xl shadow-xl print-only">
+            <div class="text-center mb-6 border-b pb-4">
+                <h2 class="text-base font-bold">سلطنة عمان</h2>
+                <h3 class="text-base font-bold mt-0.5">وزارة التعليم</h3>
+                <h4 class="text-lg font-black mt-1">مدرسة جابر بن حيان للتعليم الأساسي</h4>
+                <p class="text-xs font-semibold text-emerald-800 mt-1">التقرير النهائي المعتمد لنتائج انتخاب اللجان وأمين الصف</p>
+                <p class="text-[11px] text-slate-600 mt-0.5">تحت إشراف مربي الصف: أ. فيصل العريبي</p>
+            </div>
+            <table class="w-full text-right text-xs sm:text-sm border-collapse border border-slate-300">
+                <thead>
+                    <tr class="bg-slate-100 border-b">
+                        <th class="p-2 sm:p-3 border">اللجنة / المنصب</th>
+                        <th class="p-2 sm:p-3 border">الطالب الفائز</th>
+                        <th class="p-2 sm:p-3 border">الأصوات</th>
+                        <th class="p-2 sm:p-3 border">النسبة</th>
+                    </tr>
+                </thead>
+                <tbody id="print-winners-tbody">
+                    <!-- تعبئة ديناميكية -->
+                </tbody>
+            </table>
+            <div class="mt-8 flex justify-between text-[11px] text-slate-600 pt-3 border-t">
+                <span>تاريخ التقرير: 2026/09/23</span>
+                <span>مربي الصف: أ. فيصل العريبي</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        let globalData = null;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const res = await fetchVotingData();
+            if (res && res.data) {
+                globalData = res.data;
+                renderTeacherDashboard(globalData);
+            } else {
+                // بيانات افتراضية للتجربة في حال عدم ربط الملفات بعد
+                globalData = {
+                    committees: ["لجنة التنظيم والانضباط", "لجنة النشاط الرياضي", "لجنة الوسائل التعليمية", "أمين الصف"],
+                    classes: {
+                        "9-1": ["سالم بن سعيد المعشري", "محمد بن أحمد الحارثي", "علي بن سالم السعدي"],
+                        "9-2": ["خالد بن ناصر البوسعيدي", "فهد بن عبد الله المعولي", "سعيد بن خلفان الراشدي"]
+                    },
+                    votes: {},
+                    voters: [],
+                    userChoices: {}
+                };
+                renderTeacherDashboard(globalData);
+            }
+        });
+
+        function renderTeacherDashboard(data) {
+            const voters = data.voters || [];
+            document.getElementById('total-voters').innerText = voters.length;
+            
+            const votersListContainer = document.getElementById('voters-management-list');
+            votersListContainer.innerHTML = '';
+            
+            if (voters.length === 0) {
+                votersListContainer.innerHTML = '<p class="text-slate-400 text-xs">لم يقم أي طالب بالتصويت حتى الآن.</p>';
+            } else {
+                voters.forEach(voterName => {
+                    votersListContainer.innerHTML += `
+                        <div class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-semibold text-slate-700">
+                            <span>👤 ${voterName}</span>
+                            <button onclick="removeVoterVote('${voterName}')" class="bg-red-100 hover:bg-red-600 hover:text-white text-red-600 px-2 py-1 rounded-lg transition" title="إلغاء صوته">
+                                ❌ إلغاء صوته
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            const screenContainer = document.getElementById('screen-results-container');
+            const printTbody = document.getElementById('print-winners-tbody');
+            
+            screenContainer.innerHTML = '';
+            printTbody.innerHTML = '';
+
+            if (!data.committees) return;
+
+            data.committees.forEach(committee => {
+                const committeeVotes = (data.votes && data.votes[committee]) ? data.votes[committee] : {};
+                
+                let totalVotes = 0;
+                Object.values(committeeVotes).forEach(v => totalVotes += v);
+
+                let winner = "لم يتم التصويت بعد";
+                let maxVotes = 0;
+                Object.entries(committeeVotes).forEach(([student, votes]) => {
+                    if (votes > maxVotes) {
+                        maxVotes = votes;
+                        winner = student;
+                    }
+                });
+
+                const winnerPercentage = totalVotes > 0 ? Math.round((maxVotes / totalVotes) * 100) : 0;
+
+                let screenHtml = `
+                    <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-lg border border-slate-200">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 pb-3 border-b border-slate-100 gap-2">
+                            <h3 class="text-lg sm:text-xl font-bold text-emerald-900">${committee}</h3>
+                            <span class="bg-emerald-50 text-emerald-800 px-3 py-1 rounded-xl text-xs sm:text-sm font-bold">إجمالي الأصوات: ${totalVotes}</span>
+                        </div>
+                        
+                        <div class="mb-4 p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                            <div>
+                                <span class="text-[11px] text-emerald-700 font-bold block">الفائز الحالي:</span>
+                                <span class="text-slate-900 font-black text-base sm:text-lg">${maxVotes > 0 ? winner : 'قيد الانتظار'}</span>
+                            </div>
+                            ${maxVotes > 0 ? `<span class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold">${maxVotes} صوت (${winnerPercentage}%)</span>` : ''}
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right text-xs sm:text-sm min-w-[320px]">
+                                <thead class="bg-slate-100 text-slate-600">
+                                    <tr>
+                                        <th class="p-2.5 rounded-r-xl">اسم المرشح</th>
+                                        <th class="p-2.5">الأصوات</th>
+                                        <th class="p-2.5 rounded-l-xl">النسبة</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                `;
+
+                const allStudents = [...data.classes["9-1"], ...data.classes["9-2"]];
+                allStudents.sort((a, b) => (committeeVotes[b] || 0) - (committeeVotes[a] || 0));
+
+                allStudents.forEach(student => {
+                    const votes = committeeVotes[student] || 0;
+                    const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+
+                    screenHtml += `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-2.5 font-medium text-slate-800">${student}</td>
+                            <td class="p-2.5 font-bold text-emerald-700">${votes}</td>
+                            <td class="p-2.5">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-full bg-slate-100 rounded-full h-2 max-w-[100px] sm:max-w-[140px]">
+                                        <div class="bg-emerald-600 h-2 rounded-full" style="width: ${percentage}%"></div>
+                                    </div>
+                                    <span class="text-[11px] text-slate-500 font-semibold">${percentage}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                screenHtml += `</tbody></table></div></div>`;
+                screenContainer.innerHTML += screenHtml;
+
+                printTbody.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-2.5 border font-bold text-emerald-900">${committee}</td>
+                        <td class="p-2.5 border font-black text-black">${maxVotes > 0 ? winner : 'قيد الانتظار'}</td>
+                        <td class="p-2.5 border font-bold">${maxVotes} صوت</td>
+                        <td class="p-2.5 border font-bold">${maxVotes > 0 ? winnerPercentage + '%' : '0%'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // حذف تصويت طالب واحد
+        async function removeVoterVote(voterName) {
+            if (!confirm(`هل أنت متأكد من رغبتك في إلغاء وحذف صوت الطالب "${voterName}"؟`)) return;
+
+            globalData.voters = globalData.voters.filter(v => v !== voterName);
+            if (globalData.userChoices && globalData.userChoices[voterName]) {
+                const studentChoices = globalData.userChoices[voterName];
+                globalData.committees.forEach(committee => {
+                    const chosenStudent = studentChoices[committee];
+                    if (chosenStudent && globalData.votes[committee] && globalData.votes[committee][chosenStudent] > 0) {
+                        globalData.votes[committee][chosenStudent] -= 1;
+                    }
+                });
+                delete globalData.userChoices[voterName];
+            }
+
+            let success = true;
+            if (typeof saveVotingDataToGitHub === 'function') {
+                success = await saveVotingDataToGitHub(globalData);
+            }
+
+            if (success) {
+                alert('تم حذف تصويت الطالب بنجاح.');
+                renderTeacherDashboard(globalData);
+            } else {
+                alert('حدث خطأ أثناء الحفظ.');
+            }
+        }
+
+        // دالة تصفير وحذف جميع الأصوات بالكامل
+        async function resetAllVotesData() {
+            if (!confirm('⚠️ تحذير خطير: هل أنت متأكد تماماً من رغبتك في تصفير وحذف جميع الأصوات والنتائج والمقترعين؟ لن يمكنك التراجع عن هذه الخطوة وستبدأ الانتخابات من الصفر.')) {
+                return;
+            }
+
+            // تفريغ البيانات بالكامل
+            globalData.votes = {};
+            globalData.voters = [];
+            globalData.userChoices = {};
+
+            let success = true;
+            if (typeof saveVotingDataToGitHub === 'function') {
+                success = await saveVotingDataToGitHub(globalData);
+            }
+
+            if (success) {
+                alert('🗑️ تم تصفير كافة الأصوات وإعادة تعيين المنصة بنجاح!');
+                renderTeacherDashboard(globalData);
+            } else {
+                alert('حدث خطأ أثناء عملية التصفير، يرجى المحاولة مرة أخرى.');
+            }
+        }
+    </script>
+</body>
+</html>
