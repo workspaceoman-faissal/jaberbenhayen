@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>بوابة الطالب - الانتخابات المدرسية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { font-family: 'Tajawal', 'Segoe UI', sans-serif; }
+        body { font-family: 'Tajawal', 'Segoe UI', sans-serif; }
+        .floating-header-card {
+            background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+            box-shadow: 0 15px 25px -5px rgba(6, 78, 59, 0.25), 0 8px 10px -4px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .skeleton { background: linear-gradient(90deg, #e2e8f0 25%, #edf2f7 37%, #e2e8f0 63%); background-size: 400% 100%; animation: skeleton-loading 1.4s ease infinite; }
+        @keyframes skeleton-loading { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+        .candidate-list::-webkit-scrollbar { width: 6px; }
+        .candidate-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+        .progress-fill { transition: width 0.35s ease; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-16 antialiased relative">
+
+    <header class="w-full max-w-4xl mx-auto px-3 pt-4 mb-6">
+        <div class="floating-header-card rounded-2xl sm:rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden text-center">
+            <div class="absolute -left-10 -top-10 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-amber-400/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="relative z-10 space-y-1.5 sm:space-y-2">
+                <h1 class="text-xl sm:text-3xl font-black tracking-wider text-emerald-100">سلطنة عمان</h1>
+                <h2 class="text-lg sm:text-2xl font-bold tracking-wide text-emerald-200">وزارة التعليم</h2>
+                <p class="text-sm sm:text-lg text-white font-semibold tracking-wide">مدرسة جابر بن حيان للتعليم الأساسي (5-9)</p>
+
+                <div class="pt-2">
+                    <div class="bg-emerald-950/70 backdrop-blur-md px-4 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl inline-block shadow-inner border border-emerald-700/50 space-y-0.5">
+                        <p class="text-xs sm:text-base text-amber-300 font-bold">انتخابات لجان الصف التاسع وأمين الصف</p>
+                        <p class="text-[11px] sm:text-sm text-amber-200 font-semibold">بإشراف مربي الصف: أ. فيصل العريبي</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-xl mx-auto px-3 sm:px-6">
+
+        <!-- بنر الأخطاء العام -->
+        <div id="error-banner" class="hidden bg-red-50 border border-red-300 text-red-700 p-3 rounded-xl text-xs sm:text-sm font-bold text-center mb-4"></div>
+
+        <!-- حالة التحميل -->
+        <div id="loading-state" class="bg-white p-6 rounded-2xl shadow border border-slate-200 space-y-3">
+            <div class="skeleton h-5 w-2/3 rounded"></div>
+            <div class="skeleton h-4 w-1/2 rounded"></div>
+            <div class="skeleton h-10 w-full rounded-xl"></div>
+        </div>
+
+        <!-- إشعار إغلاق التصويت -->
+        <div id="closed-section" class="hidden bg-white p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl border border-slate-200 text-center">
+            <div class="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl shadow-inner">⏳</div>
+            <h2 class="text-xl font-black mb-1 text-slate-800">التصويت غير متاح حالياً</h2>
+            <p id="closed-message" class="text-slate-500 text-xs sm:text-sm">تم إغلاق باب التصويت من قبل مربي الصف.</p>
+        </div>
+
+        <!-- مرحلة تسجيل الطالب -->
+        <div id="login-section" class="hidden bg-white p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl border border-slate-200 text-center">
+            <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl shadow-inner">🔒</div>
+            <h2 class="text-xl sm:text-2xl font-black mb-1 text-slate-800">تسجيل دخول الطالب للتصويت</h2>
+            <p class="text-slate-500 text-xs sm:text-sm mb-6">اختر شعبتك ثم اسمك من القائمة للمشاركة في الانتخابات الصفية</p>
+
+            <form id="voter-form" class="space-y-4 text-right">
+                <div>
+                    <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1">شعبة الصف التاسع:</label>
+                    <select id="student-class" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-slate-800 text-sm focus:border-emerald-600 focus:bg-white focus:outline-none transition">
+                        <option value="">-- اختر الشعبة أولاً --</option>
+                    </select>
+                </div>
+                <div id="name-field-wrapper" class="hidden">
+                    <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1">الاسم الثلاثي والقبيلة:</label>
+                    <div class="relative">
+                        <input type="text" id="student-name-search" autocomplete="off" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-slate-800 text-sm focus:border-emerald-600 focus:bg-white focus:outline-none transition" placeholder="اكتب اسمك للبحث ضمن قائمة الشعبة...">
+                        <input type="hidden" id="student-name-value">
+                        <div id="student-name-list" class="hidden candidate-list absolute z-30 bg-white border border-slate-200 rounded-xl shadow-lg w-full max-h-48 overflow-y-auto mt-1"></div>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">إذا لم تجد اسمك ضمن القائمة، أبلغ مربي الصف لتحديث كشف الأسماء.</p>
+                </div>
+                <button type="submit" class="w-full bg-[#064e3b] hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl transition duration-200 shadow-lg mt-2 text-sm sm:text-base">الانتقال لورقة الاقتراع</button>
+            </form>
+        </div>
+
+        <!-- مرحلة الاقتراع واللجان -->
+        <div id="voting-section" class="hidden space-y-4 sm:space-y-6">
+            <div class="bg-white p-4 rounded-xl sm:rounded-2xl shadow border border-slate-200 flex justify-between items-center text-sm">
+                <div>
+                    <span class="text-slate-500 text-[11px] block">الطالب الناخب:</span>
+                    <span id="display-name" class="font-bold text-emerald-800"></span>
+                </div>
+                <div>
+                    <span class="text-slate-500 text-[11px] block">الشعبة:</span>
+                    <span id="display-class" class="font-bold text-slate-800"></span>
+                </div>
+            </div>
+
+            <!-- شريط التقدم -->
+            <div class="bg-white p-3 rounded-xl shadow border border-slate-200">
+                <div class="flex justify-between text-[11px] font-bold text-slate-600 mb-1.5">
+                    <span>تقدّم التصويت</span>
+                    <span id="progress-label">0 / 0</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                    <div id="progress-fill" class="progress-fill bg-emerald-600 h-2.5 rounded-full" style="width:0%"></div>
+                </div>
+            </div>
+
+            <div id="reedit-notice" class="hidden bg-amber-50 border border-amber-300 text-amber-800 p-3 rounded-xl text-xs font-bold text-center">
+                ⚠️ تنبيه: لقد قمت بالتصويت مسبقاً، يمكنك تعديل اختياراتك أدناه وإرسالها لتحديث صوتك.
+            </div>
+
+            <form id="ballot-form" class="space-y-4 sm:space-y-6">
+                <div id="committees-container" class="space-y-4"></div>
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-xl sm:rounded-2xl transition duration-200 shadow-xl text-base sm:text-lg">مراجعة واعتماد الأصوات النهائية</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة مراجعة الاختيارات قبل التأكيد النهائي -->
+    <div id="review-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 max-h-[85vh] overflow-y-auto">
+            <h3 class="text-xl font-black text-slate-800 mb-1">تأكيد الأصوات</h3>
+            <p class="text-slate-500 text-xs mb-4">تأكد من اختياراتك قبل الإرسال النهائي، لا يمكن التراجع بسهولة بعد الاعتماد.</p>
+            <div id="review-list" class="space-y-2 mb-5"></div>
+            <div class="flex gap-3">
+                <button id="review-back-btn" type="button" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm transition">رجوع للتعديل</button>
+                <button id="review-confirm-btn" type="button" class="flex-1 bg-[#064e3b] hover:bg-emerald-800 text-white font-bold py-3 rounded-xl text-sm transition">تأكيد الإرسال</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- البطاقة العائمة (Modal) لتأكيد وشكر التصويت -->
+    <div id="success-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 text-center transform transition-all scale-95 opacity-0 duration-300" id="modal-content">
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner animate-bounce">🎉</div>
+            <h3 class="text-2xl font-black text-emerald-900 mb-2">تم اعتماد صوتك بنجاح!</h3>
+            <p class="text-slate-600 text-sm sm:text-base mb-6 leading-relaxed">شكراً لك على مشاركتك الفعّالة في العملية الانتخابية الصفية.</p>
+            <button onclick="location.reload()" class="w-full bg-[#064e3b] hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl shadow-lg transition duration-200 text-sm sm:text-base">إغلاق والعودة للرئيسية</button>
+        </div>
+    </div>
+
+    <!-- زر لوحة المعلم -->
+    <button id="teacher-fab" class="fixed bottom-4 left-4 z-40 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-full shadow-xl flex items-center gap-1.5">
+        🛠️ لوحة المعلم
+    </button>
+
+    <!-- نافذة دخول المعلم -->
+    <div id="teacher-login-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100">
+            <h3 class="text-lg font-black text-slate-800 mb-3">دخول مربي الصف</h3>
+            <input type="password" id="teacher-password-input" placeholder="أدخل رمز الدخول" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm mb-2 focus:border-emerald-600 focus:outline-none">
+            <p id="teacher-login-error" class="hidden text-red-600 text-xs font-bold mb-2">رمز الدخول غير صحيح.</p>
+            <div class="flex gap-2 mt-2">
+                <button id="teacher-login-cancel" type="button" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-sm">إلغاء</button>
+                <button id="teacher-login-submit" type="button" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-xl text-sm">دخول</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- لوحة تحكم المعلم -->
+    <div id="teacher-dashboard-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-100 max-h-[88vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-black text-slate-800">لوحة تحكم مربي الصف</h3>
+                <button id="teacher-dashboard-close" class="text-slate-400 hover:text-slate-700 text-xl leading-none">×</button>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-bold text-slate-700">حالة التصويت:</span>
+                    <span id="voting-status-label" class="text-xs font-bold px-3 py-1 rounded-full"></span>
+                </div>
+                <button id="toggle-voting-btn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-xl text-sm"></button>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">الموعد النهائي للتصويت (اختياري):</label>
+                    <div class="flex gap-2">
+                        <input type="datetime-local" id="deadline-input" class="flex-1 bg-white border border-slate-300 rounded-xl p-2 text-xs">
+                        <button id="save-deadline-btn" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3 rounded-xl">حفظ</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-sm font-black text-slate-700">النتائج الحالية</h4>
+                <span id="total-voters-label" class="text-[11px] text-slate-500 font-bold"></span>
+            </div>
+            <div id="dashboard-results" class="space-y-4 mb-4"></div>
+
+            <button id="export-csv-btn" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl text-sm">⬇️ تصدير النتائج (CSV)</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        let globalData = null;
+        const currentVoter = { name: '', class: '' };
+        let isTeacherAuthed = false;
+
+        // ---------- أدوات مساعدة عامة ----------
+        function showError(message) {
+            const banner = document.getElementById('error-banner');
+            banner.textContent = message;
+            banner.classList.remove('hidden');
+            banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            clearTimeout(window.__errTimeout);
+            window.__errTimeout = setTimeout(() => banner.classList.add('hidden'), 6000);
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function classLabel(key) {
+            if (globalData && globalData.classNames && globalData.classNames[key]) return globalData.classNames[key];
+            const parts = String(key).split('-');
+            if (parts.length === 2 && !isNaN(parts[1])) return `التاسع (${parts[1]})`;
+            return key;
+        }
+
+        function getCommitteeIcon(name) {
+            const map = [
+                ['تنظيم', '📋'], ['انضباط', '📋'],
+                ['رياض', '⚽'],
+                ['وسائل', '🎨'], ['تعليمي', '🎨'],
+                ['صحاف', '📰'], ['إعلام', '📰'],
+                ['بيئ', '🌿'], ['صح', '🌿'],
+                ['أمين', '✒️']
+            ];
+            const hit = map.find(([kw]) => name.includes(kw));
+            return hit ? hit[1] : '🗳️';
+        }
+
+        function allStudentsList() {
+            let all = [];
+            if (globalData && globalData.classes) {
+                Object.values(globalData.classes).forEach((list) => { all = all.concat(list); });
+            }
+            return all;
+        }
+
+        function isVotingClosed() {
+            if (!globalData) return false;
+            if (globalData.votingOpen === false) return true;
+            if (globalData.votingDeadline) {
+                const deadline = new Date(globalData.votingDeadline);
+                if (!isNaN(deadline.getTime()) && Date.now() > deadline.getTime()) return true;
+            }
+            return false;
+        }
+
+        // ---------- تحميل البيانات الأولي ----------
+        window.addEventListener('DOMContentLoaded', async () => {
+            const res = await fetchVotingData();
+            if (res && res.data) {
+                globalData = res.data;
+            } else {
+                showError('تعذر تحميل بيانات المنصة، سيتم استخدام بيانات افتراضية مؤقتة.');
+                globalData = {
+                    committees: ["لجنة التنظيم والانضباط", "لجنة النشاط الرياضي", "لجنة الوسائل التعليمية", "لجنة الصحافة المدرسية", "لجنة البيئة والصحة", "أمين الصف"],
+                    classes: {
+                        "9-1": ["سالم بن سعيد المعشري", "محمد بن أحمد الحارثي", "علي بن سالم السعدي", "ناصر بن حمد البلوشي"],
+                        "9-2": ["خالد بن ناصر البوسعيدي", "فهد بن عبد الله المعولي", "سعيد بن خلفان الراشدي", "حامد بن سالم الغافري"]
+                    },
+                    votes: {}, voters: [], userChoices: {}, voterClasses: {},
+                    votingOpen: true, votingDeadline: null
+                };
+            }
+
+            document.getElementById('loading-state').classList.add('hidden');
+
+            if (isVotingClosed()) {
+                const msg = document.getElementById('closed-message');
+                if (globalData.votingDeadline && Date.now() > new Date(globalData.votingDeadline).getTime()) {
+                    msg.textContent = 'انتهى الموعد النهائي المحدد للتصويت.';
+                } else {
+                    msg.textContent = 'تم إغلاق باب التصويت من قبل مربي الصف مؤقتاً.';
+                }
+                document.getElementById('closed-section').classList.remove('hidden');
+                return;
+            }
+
+            populateClassOptions();
+            document.getElementById('login-section').classList.remove('hidden');
+        });
+
+        // ---------- تسجيل الدخول: اختيار الشعبة ثم الاسم ----------
+        function populateClassOptions() {
+            const classSelect = document.getElementById('student-class');
+            Object.keys(globalData.classes || {}).forEach((key) => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = classLabel(key);
+                classSelect.appendChild(opt);
+            });
+        }
+
+        document.getElementById('student-class').addEventListener('change', (e) => {
+            const cls = e.target.value;
+            const wrapper = document.getElementById('name-field-wrapper');
+            document.getElementById('student-name-search').value = '';
+            document.getElementById('student-name-value').value = '';
+            if (!cls) { wrapper.classList.add('hidden'); return; }
+            wrapper.classList.remove('hidden');
+            renderNameOptions(cls, '');
+        });
+
+        function renderNameOptions(cls, filterText) {
+            const listEl = document.getElementById('student-name-list');
+            const students = (globalData.classes[cls] || []).filter((s) => s.toLowerCase().includes(filterText.trim().toLowerCase()));
+            if (students.length === 0) {
+                listEl.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">لا توجد نتائج مطابقة</div>`;
+            } else {
+                listEl.innerHTML = students.map((s) => `<button type="button" class="student-option w-full text-right px-3 py-2 text-sm hover:bg-emerald-50 border-b border-slate-50 last:border-0" data-student="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('');
+            }
+            listEl.classList.remove('hidden');
+        }
+
+        document.getElementById('student-name-search').addEventListener('input', (e) => {
+            const cls = document.getElementById('student-class').value;
+            document.getElementById('student-name-value').value = '';
+            if (cls) renderNameOptions(cls, e.target.value);
+        });
+        document.getElementById('student-name-search').addEventListener('focus', () => {
+            const cls = document.getElementById('student-class').value;
+            if (cls) renderNameOptions(cls, document.getElementById('student-name-search').value);
+        });
+        document.getElementById('student-name-list').addEventListener('click', (e) => {
+            const btn = e.target.closest('.student-option');
+            if (!btn) return;
+            document.getElementById('student-name-search').value = btn.dataset.student;
+            document.getElementById('student-name-value').value = btn.dataset.student;
+            document.getElementById('student-name-list').classList.add('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#name-field-wrapper')) document.getElementById('student-name-list').classList.add('hidden');
+        });
+
+        document.getElementById('voter-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const cls = document.getElementById('student-class').value;
+            const name = document.getElementById('student-name-value').value;
+
+            if (!cls) { showError('يرجى اختيار الشعبة أولاً.'); return; }
+            if (!name) { showError('يرجى اختيار اسمك من القائمة المنسدلة (وليس كتابته يدوياً فقط).'); return; }
+            if (!globalData) { showError('البيانات لم تحمّل بعد، يرجى الانتظار ثانية وإعادة المحاولة.'); return; }
+            if (isVotingClosed()) { showError('عذراً، تم إغلاق التصويت للتو.'); return; }
+
+            currentVoter.name = name;
+            currentVoter.class = cls;
+
+            document.getElementById('display-name').innerText = name;
+            document.getElementById('display-class').innerText = classLabel(cls);
+
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('voting-section').classList.remove('hidden');
+
+            if (globalData.voters && globalData.voters.includes(name)) {
+                document.getElementById('reedit-notice').classList.remove('hidden');
+            }
+
+            renderBallotForms();
+        });
+
+        // ---------- عرض بطاقات اللجان ----------
+        function candidatesForCommittee(committee) {
+            if (committee.includes('أمين')) {
+                return (globalData.classes && globalData.classes[currentVoter.class]) || [];
+            }
+            return allStudentsList();
+        }
+
+        function renderBallotForms() {
+            const container = document.getElementById('committees-container');
+            container.innerHTML = '';
+            if (!globalData.votes) globalData.votes = {};
+
+            globalData.committees.forEach((committee, cIndex) => {
+                if (!globalData.votes[committee]) globalData.votes[committee] = {};
+                const candidates = candidatesForCommittee(committee);
+
+                let previousChoice = '';
+                if (globalData.userChoices && globalData.userChoices[currentVoter.name] && globalData.userChoices[currentVoter.name][committee]) {
+                    previousChoice = globalData.userChoices[currentVoter.name][committee];
+                }
+
+                let totalCommitteeVotes = 0;
+                candidates.forEach((student) => { totalCommitteeVotes += (globalData.votes[committee][student] || 0); });
+
+                const statsRows = candidates.map((student) => {
+                    const votesCount = globalData.votes[committee][student] || 0;
+                    const percentage = totalCommitteeVotes > 0 ? Math.round((votesCount / totalCommitteeVotes) * 100) : 0;
+                    return `<div class="bg-white p-2 rounded-lg border border-slate-100 flex justify-between items-center text-xs shadow-sm">
+                        <span class="font-semibold text-slate-800 truncate max-w-[140px] sm:max-w-[180px]">${escapeHtml(student)}</span>
+                        <span class="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded font-bold whitespace-nowrap">${votesCount} صوت (${percentage}%)</span>
+                    </div>`;
+                }).join('');
+
+                const initialPreviewName = previousChoice || 'لم تقم بالاختيار بعد';
+                let initialPreviewVote = '0%';
+                if (previousChoice) {
+                    const vCount = globalData.votes[committee][previousChoice] || 0;
+                    const pCount = totalCommitteeVotes > 0 ? Math.round((vCount / totalCommitteeVotes) * 100) : 0;
+                    initialPreviewVote = `${vCount} صوت (${pCount}%)`;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border border-slate-200';
+                card.dataset.committee = committee;
+                card.dataset.cindex = cIndex;
+                card.innerHTML = `
+                    <div class="flex items-center gap-2 mb-3 border-b pb-2">
+                        <span class="text-xl">${getCommitteeIcon(committee)}</span>
+                        <h3 class="text-lg sm:text-xl font-bold text-emerald-800">${escapeHtml(committee)}</h3>
+                    </div>
+                    <div class="mb-4 bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                        <p class="text-xs font-bold text-slate-700">📊 نسب وتصويت المرشحين الحاليين في هذه اللجنة:</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">${statsRows}</div>
+                    </div>
+                    <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">اختر مرشحك من القائمة:</label>
+                    <div class="relative">
+                        <input type="text" class="candidate-search w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-slate-800 text-sm focus:border-emerald-600 focus:bg-white focus:outline-none mb-3" placeholder="اكتب اسم المرشح للبحث..." autocomplete="off" value="${escapeHtml(previousChoice)}">
+                        <input type="hidden" class="candidate-value" name="committee_${cIndex}" value="${escapeHtml(previousChoice)}">
+                        <div class="candidate-list hidden absolute z-20 bg-white border border-slate-200 rounded-xl shadow-lg w-full max-h-48 overflow-y-auto mt-1"></div>
+                    </div>
+                    <div class="preview-box bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex justify-between items-center text-xs shadow-inner">
+                        <div>
+                            <span class="text-slate-500 block text-[10px]">المرشح الذي اخترته:</span>
+                            <span class="preview-name font-bold text-emerald-900">${escapeHtml(initialPreviewName)}</span>
+                        </div>
+                        <div class="text-left">
+                            <span class="text-slate-500 block text-[10px]">نسبة الأصوات الحالية:</span>
+                            <span class="preview-stats font-bold text-emerald-700">${initialPreviewVote}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            updateProgressBar();
+        }
+
+        function renderCandidateOptions(card, filterText) {
+            const committee = card.dataset.committee;
+            const listEl = card.querySelector('.candidate-list');
+            const candidates = candidatesForCommittee(committee).filter((s) => s.toLowerCase().includes((filterText || '').trim().toLowerCase()));
+            if (candidates.length === 0) {
+                listEl.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">لا توجد نتائج مطابقة</div>`;
+            } else {
+                listEl.innerHTML = candidates.map((s) => `<button type="button" class="candidate-option w-full text-right px-3 py-2 text-sm hover:bg-emerald-50 border-b border-slate-50 last:border-0" data-student="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('');
+            }
+            listEl.classList.remove('hidden');
+        }
+
+        function selectCandidateFor(card, student) {
+            const committee = card.dataset.committee;
+            card.querySelector('.candidate-search').value = student;
+            card.querySelector('.candidate-value').value = student;
+            card.querySelector('.candidate-list').classList.add('hidden');
+
+            const candidates = candidatesForCommittee(committee);
+            let total = 0;
+            candidates.forEach((s) => { total += (globalData.votes[committee][s] || 0); });
+            const count = globalData.votes[committee][student] || 0;
+            const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+            card.querySelector('.preview-name').textContent = student;
+            card.querySelector('.preview-stats').textContent = `${count} صوت (${pct}%)`;
+
+            updateProgressBar();
+        }
+
+        document.getElementById('committees-container').addEventListener('input', (e) => {
+            if (!e.target.classList.contains('candidate-search')) return;
+            const card = e.target.closest('[data-committee]');
+            card.querySelector('.candidate-value').value = '';
+            renderCandidateOptions(card, e.target.value);
+        });
+        document.getElementById('committees-container').addEventListener('focusin', (e) => {
+            if (!e.target.classList.contains('candidate-search')) return;
+            const card = e.target.closest('[data-committee]');
+            renderCandidateOptions(card, e.target.value);
+        });
+        document.getElementById('committees-container').addEventListener('click', (e) => {
+            const btn = e.target.closest('.candidate-option');
+            if (!btn) return;
+            selectCandidateFor(btn.closest('[data-committee]'), btn.dataset.student);
+        });
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('[data-committee]')) return;
+            document.querySelectorAll('#committees-container .candidate-list').forEach((l) => l.classList.add('hidden'));
+        });
+
+        function updateProgressBar() {
+            const cards = document.querySelectorAll('#committees-container [data-committee]');
+            const total = cards.length;
+            let answered = 0;
+            cards.forEach((c) => { if (c.querySelector('.candidate-value').value) answered++; });
+            const pct = total > 0 ? Math.round((answered / total) * 100) : 0;
+            document.getElementById('progress-label').textContent = `${answered} / ${total}`;
+            document.getElementById('progress-fill').style.width = `${pct}%`;
+        }
+
+        // ---------- مراجعة وتأكيد الإرسال ----------
+        document.getElementById('ballot-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (isVotingClosed()) { showError('عذراً، تم إغلاق التصويت.'); return; }
+
+            const cards = Array.from(document.querySelectorAll('#committees-container [data-committee]'));
+            const missing = cards.filter((c) => !c.querySelector('.candidate-value').value);
+            if (missing.length > 0) {
+                showError('يرجى اختيار مرشح لكل اللجان قبل الإرسال.');
+                missing[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            const reviewList = document.getElementById('review-list');
+            reviewList.innerHTML = cards.map((c) => `
+                <div class="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm">
+                    <span class="text-slate-500">${escapeHtml(c.dataset.committee)}</span>
+                    <span class="font-bold text-emerald-800">${escapeHtml(c.querySelector('.candidate-value').value)}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('review-modal').classList.remove('hidden');
+        });
+
+        document.getElementById('review-back-btn').addEventListener('click', () => {
+            document.getElementById('review-modal').classList.add('hidden');
+        });
+
+        document.getElementById('review-confirm-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('review-confirm-btn');
+            btn.disabled = true;
+            btn.textContent = 'جارٍ الإرسال...';
+
+            const cards = Array.from(document.querySelectorAll('#committees-container [data-committee]'));
+            const choices = {};
+            cards.forEach((c) => { choices[c.dataset.committee] = c.querySelector('.candidate-value').value; });
+
+            const result = await submitBallot(currentVoter.name, currentVoter.class, globalData.committees, choices);
+
+            btn.disabled = false;
+            btn.textContent = 'تأكيد الإرسال';
+
+            if (result.success) {
+                globalData = result.data;
+                document.getElementById('review-modal').classList.add('hidden');
+                const modal = document.getElementById('success-modal');
+                const modalContent = document.getElementById('modal-content');
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            } else {
+                document.getElementById('review-modal').classList.add('hidden');
+                showError(result.reason || 'حدث خطأ أثناء حفظ الصوت، يرجى المحاولة مرة أخرى.');
+            }
+        });
+
+        // ---------- لوحة المعلم ----------
+        document.getElementById('teacher-fab').addEventListener('click', () => {
+            if (isTeacherAuthed) { openTeacherDashboard(); return; }
+            document.getElementById('teacher-password-input').value = '';
+            document.getElementById('teacher-login-error').classList.add('hidden');
+            document.getElementById('teacher-login-modal').classList.remove('hidden');
+        });
+        document.getElementById('teacher-login-cancel').addEventListener('click', () => {
+            document.getElementById('teacher-login-modal').classList.add('hidden');
+        });
+        document.getElementById('teacher-login-submit').addEventListener('click', () => {
+            const val = document.getElementById('teacher-password-input').value;
+            if (val === TEACHER_ACCESS_CODE) {
+                isTeacherAuthed = true;
+                document.getElementById('teacher-login-modal').classList.add('hidden');
+                openTeacherDashboard();
+            } else {
+                document.getElementById('teacher-login-error').classList.remove('hidden');
+            }
+        });
+        document.getElementById('teacher-dashboard-close').addEventListener('click', () => {
+            document.getElementById('teacher-dashboard-modal').classList.add('hidden');
+        });
+
+        async function openTeacherDashboard() {
+            if (!globalData) { showError('البيانات غير محمّلة بعد.'); return; }
+            const fresh = await fetchVotingData();
+            if (fresh && fresh.data) globalData = fresh.data;
+
+            const open = globalData.votingOpen !== false && !isVotingClosed();
+            const statusLabel = document.getElementById('voting-status-label');
+            statusLabel.textContent = open ? 'مفتوح' : 'مغلق';
+            statusLabel.className = 'text-xs font-bold px-3 py-1 rounded-full ' + (open ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700');
+
+            const toggleBtn = document.getElementById('toggle-voting-btn');
+            toggleBtn.textContent = open ? '🔒 إغلاق التصويت الآن' : '🔓 إعادة فتح التصويت';
+            toggleBtn.onclick = async () => {
+                toggleBtn.disabled = true;
+                const res = await updateVotingStatus(globalData, { votingOpen: !open });
+                if (res.success) { globalData = res.data; openTeacherDashboard(); }
+                else showError('تعذر تحديث حالة التصويت.');
+                toggleBtn.disabled = false;
+            };
+
+            const deadlineInput = document.getElementById('deadline-input');
+            if (globalData.votingDeadline) {
+                const d = new Date(globalData.votingDeadline);
+                if (!isNaN(d.getTime())) deadlineInput.value = d.toISOString().slice(0, 16);
+            } else {
+                deadlineInput.value = '';
+            }
+            document.getElementById('save-deadline-btn').onclick = async () => {
+                const val = deadlineInput.value ? new Date(deadlineInput.value).toISOString() : null;
+                const res = await updateVotingStatus(globalData, { votingDeadline: val });
+                if (res.success) { globalData = res.data; showError('تم حفظ الموعد النهائي بنجاح.'); }
+                else showError('تعذر حفظ الموعد النهائي.');
+            };
+
+            document.getElementById('total-voters-label').textContent = `عدد المصوّتين: ${(globalData.voters || []).length}`;
+
+            const resultsEl = document.getElementById('dashboard-results');
+            resultsEl.innerHTML = (globalData.committees || []).map((committee) => {
+                const candidates = committee.includes('أمين') ? allStudentsList() : allStudentsList();
+                const votesForCommittee = (globalData.votes && globalData.votes[committee]) || {};
+                const total = candidates.reduce((sum, s) => sum + (votesForCommittee[s] || 0), 0);
+                const sorted = [...candidates].sort((a, b) => (votesForCommittee[b] || 0) - (votesForCommittee[a] || 0));
+                const rows = sorted.map((s) => {
+                    const count = votesForCommittee[s] || 0;
+                    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                    return `<div class="flex justify-between text-xs bg-slate-50 border border-slate-100 rounded-lg px-2 py-1.5">
+                        <span class="text-slate-700">${escapeHtml(s)}</span>
+                        <span class="font-bold text-slate-800">${count} (${pct}%)</span>
+                    </div>`;
+                }).join('');
+                return `<div>
+                    <p class="text-xs font-black text-emerald-800 mb-1">${getCommitteeIcon(committee)} ${escapeHtml(committee)}</p>
+                    <div class="space-y-1">${rows}</div>
+                </div>`;
+            }).join('');
+
+            document.getElementById('export-csv-btn').onclick = () => exportResultsCSV(globalData);
+
+            document.getElementById('teacher-dashboard-modal').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
