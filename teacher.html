@@ -4,30 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم معلم الفصل - النتائج والتقارير</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; padding: 20px; direction: rtl; }
-        .dashboard-container { max-width: 1000px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e5e7eb; padding-bottom: 15px; }
-        .control-panel { margin: 20px 0; display: flex; gap: 15px; align-items: center; }
-        select, button { padding: 10px 15px; border-radius: 5px; font-size: 15px; border: 1px solid #d1d5db; }
-        .btn-action { background-color: #059669; color: white; border: none; cursor: pointer; }
-        .btn-action:hover { background-color: #047857; }
-        .btn-print { background-color: #4f46e5; color: white; border: none; cursor: pointer; }
-        
-        /* جداول العرض */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #e5e7eb; padding: 12px; text-align: right; }
-        th { background-color: #f9fafb; color: #374151; }
-        .winner-badge { background-color: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-
-        /* إعدادات نمط الطباعة الرسمية */
-        @media print {
-            body { background: white; padding: 0; }
-            .control-panel, .no-print { display: none !important; }
-            .dashboard-container { box-shadow: none; border: none; width: 100%; max-width: 100%; }
-            .print-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-        }
-    </style>
 </head>
 <body>
 
@@ -42,8 +18,7 @@
         </div>
     </div>
 
-    <!-- لوحة التحكم والفلترة -->
-    <div class="control-panel no-print">
+    <div class="control-panel">
         <label for="filterClass">عرض النتائج حسب الشعبة:</label>
         <select id="filterClass" onchange="renderResults(this.value)">
             <option value="9-1">الشعبة 9-1</option>
@@ -54,14 +29,12 @@
         <button class="btn-print" onclick="window.print()">طباعة التقرير الرسمي</button>
     </div>
 
-    <!-- رأس التقرير للطباعة فقط -->
     <div class="print-header">
         <h2>تقرير فرز الأصوات النهائي - الشعبة (<span id="printClassTitle">9-1</span>)</h2>
         <p>التاريخ: <span id="reportDate"></span></p>
     </div>
 
-    <!-- جدول النتائج -->
-    <table>
+    <table border="1">
         <thead>
             <tr>
                 <th>#</th>
@@ -72,7 +45,6 @@
             </tr>
         </thead>
         <tbody id="resultsTableBody">
-            <!-- يتم إضافة البيانات آلياً عبر JS -->
         </tbody>
     </table>
 </div>
@@ -81,11 +53,12 @@
 <script>
     window.addEventListener('DOMContentLoaded', async () => {
         await fetchVotingData();
-        document.getElementById('schoolName').innerText = votingData.settings.schoolName;
-        document.getElementById('supervisorName').innerText = votingData.settings.supervisor;
+        if (userChoices.settings) {
+            document.getElementById('schoolName').innerText = userChoices.settings.schoolName;
+            document.getElementById('supervisorName').innerText = userChoices.settings.supervisor;
+        }
         document.getElementById('reportDate').innerText = new Date().toLocaleDateString('ar-OM');
         
-        // عرض نتائج الشعبة الأولى افتراضياً
         renderResults("9-1");
     });
 
@@ -101,7 +74,7 @@
         }
 
         results.forEach((row, index) => {
-            const isWinner = index === 0 && row.votesCount > 0; // أعلى الأصوات يُعتبر فائزاً
+            const isWinner = index === 0 && row.votesCount > 0;
             tbody.innerHTML += `
                 <tr>
                     <td>${index + 1}</td>
