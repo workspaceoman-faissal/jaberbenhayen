@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم معلم الفصل - النتائج والتقارير</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; padding: 20px; direction: rtl; }
+        .dashboard-container { max-width: 1000px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e5e7eb; padding-bottom: 15px; }
+        .control-panel { margin: 20px 0; display: flex; gap: 15px; align-items: center; }
+        select, button { padding: 10px 15px; border-radius: 5px; font-size: 15px; border: 1px solid #d1d5db; }
+        .btn-action { background-color: #059669; color: white; border: none; cursor: pointer; }
+        .btn-action:hover { background-color: #047857; }
+        .btn-print { background-color: #4f46e5; color: white; border: none; cursor: pointer; }
+        
+        /* جداول العرض */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #e5e7eb; padding: 12px; text-align: right; }
+        th { background-color: #f9fafb; color: #374151; }
+        .winner-badge { background-color: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+
+        /* إعدادات نمط الطباعة الرسمية */
+        @media print {
+            body { background: white; padding: 0; }
+            .control-panel, .no-print { display: none !important; }
+            .dashboard-container { box-shadow: none; border: none; width: 100%; max-width: 100%; }
+            .print-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <div class="header">
+        <div>
+            <h2>تقرير نتائج الانتخابات المدرسية</h2>
+            <p>المشرف العام: <strong id="supervisorName">أ. فيصل العريبي</strong></p>
+        </div>
+        <div>
+            <h3 id="schoolName">مدرسة جابر بن حيان للتعليم الأساسي</h3>
+        </div>
+    </div>
+
+    <!-- لوحة التحكم والفلترة -->
+    <div class="control-panel no-print">
+        <label for="filterClass">عرض النتائج حسب الشعبة:</label>
+        <select id="filterClass" onchange="renderResults(this.value)">
+            <option value="9-1">الشعبة 9-1</option>
+            <option value="9-2">الشعبة 9-2</option>
+        </select>
+
+        <button class="btn-action" onclick="handleCSVExport()">تصدير إلى CSV</button>
+        <button class="btn-print" onclick="window.print()">طباعة التقرير الرسمي</button>
+    </div>
+
+    <!-- رأس التقرير للطباعة فقط -->
+    <div class="print-header">
+        <h2>تقرير فرز الأصوات النهائي - الشعبة (<span id="printClassTitle">9-1</span>)</h2>
+        <p>التاريخ: <span id="reportDate"></span></p>
+    </div>
+
+    <!-- جدول النتائج -->
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>اسم المرشح</th>
+                <th>المنصب / اللجنة</th>
+                <th>إجمالي الأصوات</th>
+                <th>الحالة</th>
+            </tr>
+        </thead>
+        <tbody id="resultsTableBody">
+            <!-- يتم إضافة البيانات آلياً عبر JS -->
+        </tbody>
+    </table>
+</div>
+
+<script src="app.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', async () => {
+        await fetchVotingData();
+        document.getElementById('schoolName').innerText = votingData.settings.schoolName;
+        document.getElementById('supervisorName').innerText = votingData.settings.supervisor;
+        document.getElementById('reportDate').innerText = new Date().toLocaleDateString('ar-OM');
+        
+        // عرض نتائج الشعبة الأولى افتراضياً
+        renderResults("9-1");
+    });
+
+    function renderResults(classSection) {
+        document.getElementById('printClassTitle').innerText = classSection;
+        const results = getResultsByClassSection(classSection);
+        const tbody = document.getElementById('resultsTableBody');
+        tbody.innerHTML = "";
+
+        if (results.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">لا توجد بيانات أصوات لهذه الشعبة حالياً.</td></tr>`;
+            return;
+        }
+
+        results.forEach((row, index) => {
+            const isWinner = index === 0 && row.votesCount > 0; // أعلى الأصوات يُعتبر فائزاً
+            tbody.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${row.candidate.name}</td>
+                    <td>${row.candidate.position}</td>
+                    <td><strong>${row.votesCount}</strong></td>
+                    <td>${isWinner ? '<span class="winner-badge">فائز</span>' : 'مرشح'}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function handleCSVExport() {
+        const currentClass = document.getElementById('filterClass').value;
+        exportResultsToCSV(currentClass);
+    }
+</script>
+</body>
+</html>
