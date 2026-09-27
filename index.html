@@ -22,32 +22,31 @@
         .candidate-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
         .progress-fill { transition: width 0.35s ease; }
 
-        /* تنسيقات خاصة بالطابعة للتقرير الرسمي الإداري */
+        /* تنسيقات طباعة التقرير الرسمي - مصححة لتجاوز تعارض display: none */
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            #print-report-area, #print-report-area * {
-                visibility: visible;
+            body > *:not(#print-report-area) {
+                display: none !important;
             }
             #print-report-area {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                padding: 10px;
-                background: #fff !important;
-                color: #000 !important;
+                display: block !important;
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+                color: #000000 !important;
             }
-            .no-print {
-                display: none !important;
+            #print-report-area * {
+                visibility: visible !important;
             }
         }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-16 antialiased relative">
 
-    <header class="w-full max-w-4xl mx-auto px-3 pt-4 mb-6 no-print">
+    <header class="w-full max-w-4xl mx-auto px-3 pt-4 mb-6">
         <div class="floating-header-card rounded-2xl sm:rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden text-center">
             <div class="absolute -left-10 -top-10 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none"></div>
             <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-amber-400/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -67,7 +66,7 @@
         </div>
     </header>
 
-    <div class="max-w-xl mx-auto px-3 sm:px-6 no-print">
+    <div class="max-w-xl mx-auto px-3 sm:px-6">
 
         <!-- بنر الأخطاء العام -->
         <div id="error-banner" class="hidden bg-red-50 border border-red-300 text-red-700 p-3 rounded-xl text-xs sm:text-sm font-bold text-center mb-4"></div>
@@ -147,8 +146,8 @@
         </div>
     </div>
 
-    <!-- نافذة مراجعة الاختيارات قبل التأكيد النهائي -->
-    <div id="review-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <!-- نافذة مراجعة الاختيارات -->
+    <div id="review-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 max-h-[85vh] overflow-y-auto">
             <h3 class="text-xl font-black text-slate-800 mb-1">تأكيد الأصوات</h3>
             <p class="text-slate-500 text-xs mb-4">تأكد من اختياراتك قبل الإرسال النهائي، لا يمكن التراجع بسهولة بعد الاعتماد.</p>
@@ -160,8 +159,8 @@
         </div>
     </div>
 
-    <!-- البطاقة العائمة لتأكيد وشكر التصويت -->
-    <div id="success-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <!-- النافذة العائمة للنجاح -->
+    <div id="success-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 text-center transform transition-all scale-95 opacity-0 duration-300" id="modal-content">
             <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner animate-bounce">🎉</div>
             <h3 class="text-2xl font-black text-emerald-900 mb-2">تم اعتماد صوتك بنجاح!</h3>
@@ -171,12 +170,12 @@
     </div>
 
     <!-- زر لوحة المعلم -->
-    <button id="teacher-fab" class="fixed bottom-4 left-4 z-40 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-full shadow-xl flex items-center gap-1.5 no-print">
+    <button id="teacher-fab" class="fixed bottom-4 left-4 z-40 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-full shadow-xl flex items-center gap-1.5">
         🛠️ لوحة المعلم
     </button>
 
     <!-- نافذة دخول المعلم -->
-    <div id="teacher-login-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <div id="teacher-login-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100">
             <h3 class="text-lg font-black text-slate-800 mb-3">دخول معلم المادة</h3>
             <input type="password" id="teacher-password-input" placeholder="أدخل رمز الدخول" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm mb-2 focus:border-emerald-600 focus:outline-none">
@@ -188,8 +187,8 @@
         </div>
     </div>
 
-    <!-- لوحة تحكم المعلم (تعرض تقرير بالمرشح الفائز والمختار لكل شعبة على حدة) -->
-    <div id="teacher-dashboard-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <!-- لوحة تحكم المعلم -->
+    <div id="teacher-dashboard-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl border border-slate-100 max-h-[88vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-black text-slate-800">لوحة تحكم معلم المادة</h3>
@@ -666,7 +665,6 @@
             document.getElementById('teacher-dashboard-modal').classList.add('hidden');
         });
 
-        // دالة لوحة تحكم المعلم المحدثة لتعرض التقرير الملخص لكل شعبة
         async function openTeacherDashboard() {
             if (!globalData) { showError('البيانات غير محمّلة بعد.'); return; }
             const fresh = await fetchVotingData();
@@ -784,7 +782,7 @@
             document.getElementById('teacher-dashboard-modal').classList.remove('hidden');
         }
 
-        // دالة إنشاء وطباعة التقرير الإداري الرسمي
+        // دالة إنشاء وطباعة التقرير الإداري الرسمي المصححة
         function generateAndPrintOfficialReport() {
             const printArea = document.getElementById('print-report-area');
             const currentDate = new Date().toLocaleDateString('ar-OM', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -910,9 +908,18 @@
                 </div>
             `;
 
+            // إزالة الصنف hidden وإتاحة التقرير للرسم
             printArea.classList.remove('hidden');
-            window.print();
-            printArea.classList.add('hidden');
+
+            // مهلة زمنية بسيطة تضمن اكتمال رسم الـ DOM في المتصفح قبل استدعاء أمر الطباعة
+            setTimeout(() => {
+                window.print();
+                
+                // إعادة إخفاء حاوية الطباعة بعد إغلاق نافذة المعاينة
+                setTimeout(() => {
+                    printArea.classList.add('hidden');
+                }, 300);
+            }, 150);
         }
     </script>
 </body>
