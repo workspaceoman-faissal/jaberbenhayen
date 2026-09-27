@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة الانتخابات المدرسية - التصويت</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; text-align: right; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        h1, h2 { color: #1e3a8a; text-align: center; }
+        .header-info { text-align: center; color: #4b5563; margin-bottom: 25px; border-bottom: 2px solid #e5e7eb; padding-bottom: 15px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #1f2937; }
+        input[type="text"], select { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .committee-card { background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .btn-submit { width: 100%; background-color: #2563eb; color: white; padding: 14px; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+        .btn-submit:hover { background-color: #1d4ed8; }
+        .warning-text { color: #dc2626; font-size: 14px; margin-top: 5px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 id="schoolTitle">مدرسة جابر بن حيان للتعليم الأساسي</h1>
+    <div class="header-info">
+        <span>إشراف: <strong id="supervisorName">أ. فيصل العريبي</strong></span>
+    </div>
+
+    <h2>استمارة الاقتراع الإلكتروني</h2>
+
+    <form id="votingForm" onsubmit="handleFormSubmit(event)">
+        <!-- بيانات الطالب الناخب -->
+        <div class="form-group">
+            <label for="civilId">الرقم المدني للطالب الناخب:</label>
+            <input type="text" id="civilId" placeholder="أدخل الرقم المدني" required pattern="[0-9]+" title="يرجى إدخال أرقام فقط">
+        </div>
+
+        <div class="form-group">
+            <label for="studentClass">الشعبة الدراسية:</label>
+            <select id="studentClass" onchange="loadCandidatesForClass(this.value)" required>
+                <option value="">-- اختر الشعبة --</option>
+                <option value="9-1">9-1</option>
+                <option value="9-2">9-2</option>
+            </select>
+        </div>
+
+        <!-- أوراق التصويت للجان -->
+        <div id="candidatesContainer" style="display:none;">
+            <h3>اختر مرشحيك للجان المدرسية:</h3>
+            
+            <div class="committee-card">
+                <label for="committee1">رئيس اللجنة الرياضية:</label>
+                <select id="committee1" class="candidate-select" onchange="validateUniqueSelections(this)" required>
+                    <option value="">-- اختر مرشحاً --</option>
+                </select>
+            </div>
+
+            <div class="committee-card">
+                <label for="committee2">رئيس اللجنة الثقافية:</label>
+                <select id="committee2" class="candidate-select" onchange="validateUniqueSelections(this)" required>
+                    <option value="">-- اختر مرشحاً --</option>
+                </select>
+            </div>
+
+            <p id="duplicateWarning" class="warning-text">عذراً، لا يمكنك اختيار نفس المرشح في أكثر من لجنة!</p>
+
+            <button type="submit" class="btn-submit">تأكيد وإرسال التصويت</button>
+        </div>
+    </form>
+</div>
+
+<script src="app.js"></script>
+<script>
+    // تحميل بيانات المدرسة عند بدء التشغيل
+    window.addEventListener('DOMContentLoaded', async () => {
+        await fetchVotingData();
+        document.getElementById('schoolTitle').innerText = votingData.settings.schoolName;
+        document.getElementById('supervisorName').innerText = votingData.settings.supervisor;
+    });
+
+    // جلب المرشحين بناءً على الشعبة المختارة
+    function loadCandidatesForClass(classSection) {
+        const container = document.getElementById('candidatesContainer');
+        if (!classSection) {
+            container.style.display = 'none';
+            return;
+        }
+
+        const filteredCandidates = votingData.candidates.filter(c => c.classSection === classSection);
+
+        const selects = document.querySelectorAll('.candidate-select');
+        selects.forEach(select => {
+            select.innerHTML = '<option value="">-- اختر مرشحاً --</option>';
+            filteredCandidates.forEach(cand => {
+                select.innerHTML += `<option value="${cand.id}">${cand.name}</option>`;
+            });
+        });
+
+        container.style.display = 'block';
+    }
+
+    // منع تكرار اختيار الطالب نفسه في أكثر من لجنة
+    function validateUniqueSelections(currentSelect) {
+        const selects = Array.from(document.querySelectorAll('.candidate-select'));
+        const selectedValues = selects.map(s => s.value).filter(val => val !== "");
+        const hasDuplicates = new Set(selectedValues).size !== selectedValues.length;
+
+        const warning = document.getElementById('duplicateWarning');
+        if (hasDuplicates) {
+            warning.style.display = 'block';
+            currentSelect.value = ""; // إغلاق الاختيار المكرر
+        } else {
+            warning.style.display = 'none';
+        }
+    }
+
+    // معالجة إرسال النموذج
+    async function handleFormSubmit(event) {
+        event.preventDefault();
+        const civilId = document.getElementById('civilId').value.trim();
+        const selects = document.querySelectorAll('.candidate-select');
+        
+        const selectedCandidateIds = Array.from(selects).map(s => s.value);
+
+        if (selectedCandidateIds.some(id => id === "")) {
+            alert("يرجى اختيار جميع المرشحين المطلوبة أسماؤهم.");
+            return;
+        }
+
+        const btn = event.target.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerText = "جاري الحفظ والتسجيل...";
+
+        const success = await submitBallot(civilId, selectedCandidateIds);
+        
+        btn.disabled = false;
+        btn.innerText = "تأكيد وإرسال التصويت";
+
+        if (success) {
+            document.getElementById('votingForm').reset();
+            document.getElementById('candidatesContainer').style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>
