@@ -80,5 +80,6 @@
   "voters": [],
   "userChoices": {},
   "voterClasses": {},
-  "votingDeadline": "2026-10-01T14:00:00.000Z"
+  "votingDeadline": "2026-10-01T14:00:00.000Z",
+  "votingOpen": false
 }
